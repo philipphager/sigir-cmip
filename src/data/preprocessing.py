@@ -80,7 +80,10 @@ class StratifiedTruncate(Step):
         self.random_state = random_state
 
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
-        logger.debug(f"Stratified sampling queries to max {self.max_length} documents")
+        logger.debug(
+            f"Stratified sampling queries to max {self.max_length} documents, "
+            f"random_state: {self.random_state}"
+        )
         return df.groupby(["query_id"], group_keys=False).apply(self.stratified_sample)
 
     def stratified_sample(self, df):
@@ -97,7 +100,10 @@ class Shuffle(Step):
         self.random_state = random_state
 
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
-        logger.debug(f"Uniformly shuffle documents per query")
+        logger.debug(
+            f"Uniformly shuffle documents per query, "
+            f"random_state: {self.random_state}"
+        )
         return (
             df.groupby("query_id")
             .sample(frac=1, random_state=self.random_state)
