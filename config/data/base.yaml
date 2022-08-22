@@ -1,0 +1,9 @@
+_target_: ???
+name: ???
+fold: ???
+load_features: ???
+base_dir: "~/.ltr_datasets"
+
+pipeline:
+  _target_: src.data.preprocessing.Pipeline
+  steps: [ ]

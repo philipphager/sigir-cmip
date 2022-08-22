@@ -1,0 +1,5 @@
+defaults:
+  - _self_
+  - data: mslr10k
+
+random_state: 0
