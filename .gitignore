@@ -1,0 +1,13 @@
+# System
+.DS_Store
+
+# IDEs
+.idea
+.vscode
+
+# Python files
+*.pyc
+.ipynb_checkpoints
+
+# Project outputs
+lightning_logs
