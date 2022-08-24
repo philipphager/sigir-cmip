@@ -23,7 +23,7 @@ test_simulator:
 train_loader:
   _target_: torch.utils.data.DataLoader
   dataset: ???
-  batch_size: 50
+  batch_size: 100
   shuffle: True
 
 test_loader:
