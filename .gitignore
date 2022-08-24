@@ -9,6 +9,9 @@
 *.pyc
 .ipynb_checkpoints
 
+# Local configurations
+config/env.yaml
+
 # Project outputs
 lightning_logs
 outputs
