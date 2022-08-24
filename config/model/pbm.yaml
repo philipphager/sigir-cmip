@@ -1,0 +1,6 @@
+defaults:
+  - base
+
+_target_: src.model.PBM
+optimizer: adam
+learning_rate: 0.0001

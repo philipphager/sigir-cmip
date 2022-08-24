@@ -1,5 +1,43 @@
 defaults:
   - _self_
   - data: mslr10k
+  - logging_policy@train_policy: noisy-oracle
+  - logging_policy@test_policy: uniform
+  - user_model@train_user: graded-pbm
+  - user_model@test_user: graded-pbm
+  - model: pbm
+
+train_simulator:
+  _target_: src.simulation.Simulator
+  logging_policy: ${train_policy}
+  user_model: ${train_user}
+  n_sessions: 1_000_000
+
+test_simulator:
+  _target_: src.simulation.Simulator
+  logging_policy: ${test_policy}
+  user_model: ${test_user}
+  n_sessions: 10_000
+
+train_loader:
+  _target_: torch.utils.data.DataLoader
+  dataset: ???
+  batch_size: 50
+  shuffle: True
+
+test_loader:
+  _target_: torch.utils.data.DataLoader
+  dataset: ???
+  batch_size: 500
+  shuffle: False
+
+trainer:
+  _target_: pytorch_lightning.Trainer
+  max_epochs: 100
+  accelerator: auto
+  callbacks:
+    - _target_: pytorch_lightning.callbacks.EarlyStopping
+      monitor: val_loss
+      patience: 3
 
 random_state: 0

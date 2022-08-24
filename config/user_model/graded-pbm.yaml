@@ -1,0 +1,3 @@
+_target_: src.simulation.user_model.GradedPBM
+click_noise: 0.1
+position_bias: 1.0

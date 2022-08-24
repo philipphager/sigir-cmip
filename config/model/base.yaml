@@ -1,0 +1,5 @@
+_target_: ???
+loss:
+  _target_: src.model.loss.BinaryCrossEntropy
+n_results: "${data.n_results}"
+n_documents: ???
