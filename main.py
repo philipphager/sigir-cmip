@@ -15,6 +15,7 @@ def main(config: DictConfig):
 
     dataset = instantiate(config.data)
     train = dataset.load("train")
+    n_documents = train.n.sum() + 1
 
     train_simulator = instantiate(config.train_simulator)
     train_clicks = train_simulator(train)
@@ -28,7 +29,8 @@ def main(config: DictConfig):
     test_loader = instantiate(config.test_loader, dataset=test_clicks)
 
     trainer = instantiate(config.trainer)
-    model = instantiate(config.model)
+    model = instantiate(config.model, n_documents=n_documents)
+    print("N documents", n_documents)
 
     trainer.fit(model, train_loader, val_loader)
     trainer.test(model, test_loader)
