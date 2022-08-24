@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Callable
+from typing import Callable, List
 
 import numpy as np
 import pandas as pd
@@ -50,7 +50,7 @@ class Pipeline:
         return self._to_torch(df)
 
     def _to_torch(self, df: pd.DataFrame):
-        logger.debug(f"Converting DataFrame to torch tensors")
+        logger.debug("Converting DataFrame to torch tensors")
         query_df = (
             df.groupby("query_id")
             .agg(doc_ids=("doc_id", list), y=("y", list), n=("y", "count"))
@@ -113,6 +113,6 @@ class Shuffle(Step):
 
 class GenerateDocumentIds(Step):
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
-        logger.debug(f"Generating surrogate document ids")
+        logger.debug("Generating surrogate document ids")
         df["doc_id"] = np.arange(len(df))
         return df

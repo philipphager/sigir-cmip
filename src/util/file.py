@@ -59,7 +59,7 @@ def read_svmlight_file(path: Path, load_features: bool) -> pd.DataFrame:
         df.columns = df.columns.map(str)
     else:
         df = pd.DataFrame()
-        logging.info(f"Omitting doc features from dataset")
+        logging.info("Omitting doc features from dataset")
 
     df["y"] = y
     df["query_id"] = queries

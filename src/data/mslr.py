@@ -4,12 +4,7 @@ import pandas as pd
 
 from src.data.base import DatasetLoader
 from src.data.preprocessing import Pipeline
-from src.util.file import (
-    download,
-    extract,
-    read_svmlight_file,
-    verify_file,
-)
+from src.util.file import download, extract, read_svmlight_file, verify_file
 
 
 class MSLR10K(DatasetLoader):
