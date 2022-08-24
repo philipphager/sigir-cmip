@@ -1,10 +1,27 @@
 repos:
+-   repo: https://github.com/PyCQA/autoflake
+    rev: v1.4
+    hooks:
+    -   id: autoflake
+    entry: autoflake
+    language: python
+    "types": [ python ]
+    args:
+        - "--in-place"
+        - "--remove-all-unused-imports"
+        - "--remove-duplicate-keys"
+        - "--ignore-init-module-imports"
+-   repo: https://github.com/pycqa/isort
+    rev: 5.6.4
+    hooks:
+      - id: isort
+        args: ["--profile", "black", "--filter-files"]
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.3.0
     hooks:
-    -   id: end-of-file-fixer
-    -   id: trailing-whitespace
--   repo: https://github.com/psf/black
-    rev: 22.6.0
+    - id: flake8
+-   repo: https://github.com/ambv/black
+    rev: stable
     hooks:
-    -   id: black
+    - id: black
+
