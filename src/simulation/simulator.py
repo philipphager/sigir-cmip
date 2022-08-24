@@ -4,7 +4,7 @@ from torch.utils.data import Dataset
 
 from src.data.preprocessing import RatingDataset
 from src.simulation.logging_policy import LoggingPolicy
-from src.simulation.user.base import UserModel
+from src.simulation.user_model.base import UserModel
 
 
 class ClickDataset(Dataset):
