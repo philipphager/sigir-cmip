@@ -14,4 +14,10 @@ Automatically format and lint modified files in commit.
 2. Initialize pre-commit: `pre-commit install`
 3. (Optional) Run on checks against all files (not just changed): `pre-commit run --all-files`
 
-### 2. Datasets
+### 3. Datasets
+The project automatically downloads public datasets used in this work.
+
+1. Specify the location for storing datasets using the environment, e.g.: `export LTR_DATASETS="~/.ltr_datasets/"`
+2. The specified directory will be automatically created, if not existing.
+3. To avoid downloading datasets, you can directly place their original .zip file into the `download` subdirectory, e.g.:
+   `$LTR_DATASETS/download/MSLR-WEB30K.zip`
