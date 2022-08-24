@@ -8,7 +8,7 @@ Dependency management
 3. Activating environment: `conda activate cm-bias-evaluation`
 
 ### 2. Pre-commit
-Automatically formats, lints changed files in commit.
+Automatically format and lint modified files in commit.
 
 1. Make sure you activate your environment
 2. Initialize pre-commit: `pre-commit install`
