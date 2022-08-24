@@ -6,6 +6,7 @@ defaults:
   - user_model@train_user: graded-pbm
   - user_model@test_user: graded-pbm
   - model: pbm
+  - env
 
 train_simulator:
   _target_: src.simulation.Simulator

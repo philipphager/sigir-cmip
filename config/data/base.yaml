@@ -2,7 +2,7 @@ _target_: ???
 name: ???
 fold: ???
 load_features: ???
-base_dir: ${oc.env:LTR_DATASETS}
+base_dir: ???
 
 pipeline:
   _target_: src.data.preprocessing.Pipeline
