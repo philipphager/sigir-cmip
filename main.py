@@ -19,18 +19,19 @@ def main(config: DictConfig):
 
     train_simulator = instantiate(config.train_simulator)
     train_clicks = train_simulator(train)
-    val_clicks = train_simulator(train)  # Fixme: Relative generation
+
+    val_simulator = instantiate(config.val_simulator)
+    val_clicks = val_simulator(train)
 
     test_simulator = instantiate(config.test_simulator)
     test_clicks = test_simulator(train)
 
     train_loader = instantiate(config.train_loader, dataset=train_clicks)
-    val_loader = instantiate(config.test_loader, dataset=val_clicks)
-    test_loader = instantiate(config.test_loader, dataset=test_clicks)
+    val_loader = instantiate(config.val_test_loader, dataset=val_clicks)
+    test_loader = instantiate(config.val_test_loader, dataset=test_clicks)
 
     trainer = instantiate(config.trainer)
     model = instantiate(config.model, n_documents=n_documents)
-    print("N documents", n_documents)
 
     trainer.fit(model, train_loader, val_loader)
     trainer.test(model, test_loader)
