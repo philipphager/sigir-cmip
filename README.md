@@ -34,3 +34,10 @@ We need to specify the location for storing datasets using the environment:
 4. To avoid downloading datasets, you can directly place the original .zip file into
    the `download` subdirectory, e.g.:
    `~/ltr_datasets/download/MSLR-WEB30K.zip`
+
+### 4. Logging
+
+Log loss and metrics with [Weights & Biases](https://github.com/wandb/wandb).
+
+1. Make sure you activate your environment
+2. Log into Weights & Biases before your first run: `wandb login`
