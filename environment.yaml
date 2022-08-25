@@ -6,6 +6,7 @@ dependencies:
   - python=3.9
   - pytorch=1.12.1
   - torchvision=0.13.0
+  - cudatoolkit=11.3
   - hydra-core=1.2.0
   - pandas=1.4.3
   - pyarrow=9.0.0
@@ -19,3 +20,4 @@ dependencies:
       - pre-commit==2.20.0
       - wget==3.2
       - pytorchltr==0.2.1
+      - wandb==0.13.2
