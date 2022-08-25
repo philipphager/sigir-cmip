@@ -12,31 +12,34 @@ train_simulator:
   _target_: src.simulation.Simulator
   logging_policy: ${train_policy}
   user_model: ${train_user}
-  n_sessions: 1_000_000
+  n_sessions: 2_500_000
 
 val_simulator:
   _target_: src.simulation.Simulator
   logging_policy: ${train_policy}
   user_model: ${train_user}
-  n_sessions: 100_000
+  n_sessions: 250_000
 
 test_simulator:
   _target_: src.simulation.Simulator
   logging_policy: ${test_policy}
   user_model: ${test_user}
-  n_sessions: 100_000
+  n_sessions: 250_000
 
 train_loader:
   _target_: torch.utils.data.DataLoader
   dataset: ???
   batch_size: 256
   shuffle: True
+  num_workers: 2
+  persistent_workers: True
 
 val_test_loader:
   _target_: torch.utils.data.DataLoader
   dataset: ???
-  batch_size: 1024
+  batch_size: 256
   shuffle: False
+  num_workers: 2
 
 trainer:
   _target_: pytorch_lightning.Trainer
