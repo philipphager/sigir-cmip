@@ -62,7 +62,7 @@ class PBM(pl.LightningModule):
         metrics = get_metrics(y_predict, y, n, "val_")
 
         self.log("val_loss", loss)
-        self.log_dict(metrics)
+        self.log_metrics(metrics)
         return loss
 
     def test_step(self, batch, idx):
@@ -71,5 +71,5 @@ class PBM(pl.LightningModule):
         y_predict_click, y_predict = self.forward(x)
         metrics = get_metrics(y_predict, y, n, "test_")
 
-        self.log_dict(metrics)
+        self.log_metrics(metrics)
         return metrics
