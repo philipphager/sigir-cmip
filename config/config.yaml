@@ -52,7 +52,7 @@ trainer:
   logger:
     - _target_: pytorch_lightning.loggers.WandbLogger
       project: "cm-bias-evaluation"
-      log_model: False
+      save_dir: wandb
 
 random_state: 0
 
