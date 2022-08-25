@@ -33,7 +33,7 @@ We need to specify the location for storing datasets using the environment:
    configs: `git update-index --skip-worktree config/env.yaml`
 4. To avoid downloading datasets, you can directly place the original .zip file into
    the `download` subdirectory, e.g.:
-   `~/ltr_datasets/download/MSLR-WEB30K.zip`
+   `~/.ltr_datasets/download/MSLR-WEB30K.zip`
 
 ### 4. Logging
 
