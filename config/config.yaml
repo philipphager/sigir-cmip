@@ -52,7 +52,7 @@ trainer:
   logger:
     - _target_: pytorch_lightning.loggers.WandbLogger
       project: "cm-bias-evaluation"
-      log_model: True # Log last model
+      log_model: False
 
 random_state: 0
 
