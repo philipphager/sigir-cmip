@@ -34,7 +34,7 @@ def main(config: DictConfig):
     model = instantiate(config.model, n_documents=n_documents)
 
     trainer.fit(model, train_loader, val_loader)
-    trainer.test(model, test_loader)
+    trainer.test(dataloaders=test_loader, ckpt_path="best")
 
     logging.debug(
         f"Inferred examination probability: {model.examination(torch.arange(10))}"
