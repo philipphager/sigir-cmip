@@ -51,3 +51,6 @@ trainer:
       patience: 1
 
 random_state: 0
+
+hydra:
+  verbose: True # Set log level to DEBUG
