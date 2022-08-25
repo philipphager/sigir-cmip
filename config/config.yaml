@@ -40,11 +40,11 @@ val_test_loader:
 
 trainer:
   _target_: pytorch_lightning.Trainer
-  max_epochs: 100
+  max_epochs: 10
   accelerator: auto
   callbacks:
     - _target_: pytorch_lightning.callbacks.EarlyStopping
       monitor: val_loss
-      patience: 3
+      patience: 1
 
 random_state: 0
