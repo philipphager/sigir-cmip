@@ -53,7 +53,9 @@ class Simulator:
         n = n[sample_ids]
 
         # Sample logging policy rankings using Gumbel Noise trick
-        y_predict = F.gumbel_softmax(y_predict)  # Fixme: log transform?
+        y_predict = F.gumbel_softmax(
+            torch.log(y_predict.clip(min=0))
+        )  # Fixme: Proper Gumbel trick?
         idx = torch.argsort(-y_predict)
         x = torch.gather(x, 1, idx)
         y = torch.gather(y, 1, idx)
