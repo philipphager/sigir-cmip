@@ -1,0 +1,60 @@
+defaults:
+  - _self_
+  - data: mslr10k
+  - logging_policy@train_policy: noisy-oracle
+  - logging_policy@test_policy: uniform
+  - user_model@train_user: graded-pbm
+  - user_model@test_user: graded-pbm
+  - model: pbm
+  - env
+
+train_simulator:
+  _target_: src.simulation.Simulator
+  logging_policy: ${train_policy}
+  user_model: ${train_user}
+  n_sessions: 5_000_000
+
+val_simulator:
+  _target_: src.simulation.Simulator
+  logging_policy: ${train_policy}
+  user_model: ${train_user}
+  n_sessions: 500_000
+
+test_simulator:
+  _target_: src.simulation.Simulator
+  logging_policy: ${test_policy}
+  user_model: ${test_user}
+  n_sessions: 500_000
+
+train_loader:
+  _target_: torch.utils.data.DataLoader
+  dataset: ???
+  batch_size: 256
+  shuffle: True
+  num_workers: 2
+  persistent_workers: True
+
+val_test_loader:
+  _target_: torch.utils.data.DataLoader
+  dataset: ???
+  batch_size: 256
+  shuffle: False
+  num_workers: 2
+
+trainer:
+  _target_: pytorch_lightning.Trainer
+  max_epochs: 10
+  accelerator: auto
+  callbacks:
+    - _target_: pytorch_lightning.callbacks.EarlyStopping
+      monitor: val_loss
+      patience: 1
+  logger:
+    - _target_: pytorch_lightning.loggers.WandbLogger
+      project: "cm-bias-evaluation"
+      log_model: True # Log last model
+
+random_state: 0
+
+hydra:
+  verbose: True # Set log level to DEBUG

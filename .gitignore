@@ -11,3 +11,5 @@
 
 # Project outputs
 lightning_logs
+outputs
+wandb

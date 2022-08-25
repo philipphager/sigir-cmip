@@ -6,13 +6,18 @@ dependencies:
   - python=3.9
   - pytorch=1.12.1
   - torchvision=0.13.0
+  - cudatoolkit=11.3
   - hydra-core=1.2.0
   - pandas=1.4.3
   - pyarrow=9.0.0
   - numpy=1.23.2
+  - loguru=0.6.0
   - pip=21.2.4
   - pip:
       - hydra_submitit_launcher==1.2.0
       - pytorch_lightning==1.6.5
       - lightgbm==3.3.2
+      - pre-commit==2.20.0
       - wget==3.2
+      - pytorchltr==0.2.1
+      - wandb==0.13.2
