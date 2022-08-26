@@ -5,6 +5,7 @@ import hydra
 import torch
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
+from pytorch_lightning import seed_everything
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 def main(config: DictConfig):
     logger.info(OmegaConf.to_yaml(config))
     logger.info("Working directory : {}".format(os.getcwd()))
+    seed_everything(config.random_state)
 
     dataset = instantiate(config.data)
     train = dataset.load("train")
