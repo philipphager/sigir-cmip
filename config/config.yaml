@@ -18,13 +18,13 @@ val_simulator:
   _target_: src.simulation.Simulator
   logging_policy: ${train_policy}
   user_model: ${train_user}
-  n_sessions: 500_000
+  n_sessions: 1_000_000
 
 test_simulator:
   _target_: src.simulation.Simulator
   logging_policy: ${test_policy}
   user_model: ${test_user}
-  n_sessions: 500_000
+  n_sessions: 1_000_000
 
 train_loader:
   _target_: torch.utils.data.DataLoader
