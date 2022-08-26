@@ -1,5 +1,4 @@
 import torch
-import torch.nn.functional as F
 from torch.utils.data import Dataset
 
 from src.data.preprocessing import RatingDataset
@@ -53,7 +52,8 @@ class Simulator:
         n = n[sample_ids]
 
         # Sample logging policy rankings using Gumbel Noise trick
-        y_predict = F.gumbel_softmax(y_predict)  # Fixme: log transform?
+        noise = torch.rand_like(y_predict.float())
+        y_predict = torch.log(y_predict) - torch.log(-torch.log(noise))
         idx = torch.argsort(-y_predict)
         x = torch.gather(x, 1, idx)
         y = torch.gather(y, 1, idx)
