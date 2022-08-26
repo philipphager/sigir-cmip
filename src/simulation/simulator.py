@@ -39,21 +39,21 @@ class Simulator:
     def __call__(self, dataset: RatingDataset, eps: float = 1e-9):
         query_ids, x, y, n = dataset[:]
 
-        # FIXME
-        # Get scores from logging policy
-        y_predict = self.logging_policy.predict(dataset)
-
         # Uniform sample queries
         sample_ids = torch.randint(len(query_ids), (self.n_sessions,))
         query_ids = query_ids[sample_ids]
         x = x[sample_ids]
         y = y[sample_ids]
-        y_predict = y_predict[sample_ids]
         n = n[sample_ids]
+
+        dataset = RatingDataset(query_ids, x, y, n)
+
+        # Get scores from logging policy
+        y_predict = self.logging_policy.predict(dataset)
 
         # Sample logging policy rankings using Gumbel Noise trick
         noise = torch.rand_like(y_predict.float())
-        y_predict = torch.log(y_predict) - torch.log(-torch.log(noise))
+        y_predict = y_predict - torch.log(-torch.log(noise))
         idx = torch.argsort(-y_predict)
         x = torch.gather(x, 1, idx)
         y = torch.gather(y, 1, idx)

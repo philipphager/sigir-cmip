@@ -15,6 +15,5 @@ class NoisyOraclePolicy(LoggingPolicy):
     def predict(self, dataset: RatingDataset) -> torch.Tensor:
         query_ids, x, y, n = dataset[:]
         y = y + self.noise * torch.randn_like(y.float())
-        y = y.clip(min=0)
-        y = mask_padding(y, n, 0)
+        y = mask_padding(y, n, -torch.inf)
         return y
