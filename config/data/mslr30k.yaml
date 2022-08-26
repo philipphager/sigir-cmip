@@ -13,6 +13,8 @@ pipeline:
     - _target_: src.data.preprocessing.StratifiedTruncate
       max_length: "${data.n_results}"
       random_state: "${random_state}"
+    - _target_: src.data.preprocessing.DiscardShortQueries
+      min_length: "${data.n_results}"
     - _target_: src.data.preprocessing.Shuffle
       random_state: "${random_state}"
     - _target_: src.data.preprocessing.GenerateDocumentIds

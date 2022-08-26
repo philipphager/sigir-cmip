@@ -113,6 +113,18 @@ class Shuffle(Step):
         )
 
 
+class DiscardShortQueries(Step):
+    def __init__(self, min_length: int):
+        self.min_length = min_length
+
+    def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
+        logger.info(f"Discarding queries with less than {self.min_length} documents")
+        query_df = df.groupby("query_id").agg(n_results=("y", "count")).reset_index()
+        query_df = query_df[query_df.n_results >= self.min_length]
+
+        return df[df.query_id.isin(query_df.query_id)]
+
+
 class GenerateDocumentIds(Step):
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
         logger.info("Generating surrogate document ids")
