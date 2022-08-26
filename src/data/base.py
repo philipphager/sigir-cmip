@@ -1,11 +1,13 @@
+import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List
 
 import pandas as pd
-from loguru import logger
 
 from src.data.preprocessing import Pipeline, RatingDataset
+
+logger = logging.getLogger(__name__)
 
 
 class DatasetLoader(ABC):
@@ -55,7 +57,7 @@ class DatasetLoader(ABC):
         return path
 
     def load(self, split: str) -> RatingDataset:
-        logger.debug(f"Loading {self.name}, fold: {self.fold}, split: {split}")
+        logger.info(f"Loading {self.name}, fold: {self.fold}, split: {split}")
         assert split in self.splits, f"Split must one of {self.splits}"
         path = self.cache_directory / f"{self.name}-{self.fold}-{split}.parquet"
 

@@ -4,14 +4,15 @@ import os
 import hydra
 import torch
 from hydra.utils import instantiate
-from loguru import logger
 from omegaconf import DictConfig, OmegaConf
+
+logger = logging.getLogger(__name__)
 
 
 @hydra.main(config_path="config", config_name="config", version_base="1.2")
 def main(config: DictConfig):
-    logger.debug(OmegaConf.to_yaml(config))
-    logger.debug("Working directory : {}".format(os.getcwd()))
+    logger.info(OmegaConf.to_yaml(config))
+    logger.info("Working directory : {}".format(os.getcwd()))
 
     dataset = instantiate(config.data)
     train = dataset.load("train")
@@ -36,7 +37,7 @@ def main(config: DictConfig):
     trainer.fit(model, train_loader, val_loader)
     trainer.test(dataloaders=test_loader, ckpt_path="best")
 
-    logging.debug(
+    logging.info(
         f"Inferred examination probability: {model.examination(torch.arange(10))}"
     )
 

@@ -55,6 +55,3 @@ trainer:
       save_dir: wandb
 
 random_state: 0
-
-hydra:
-  verbose: True # Set log level to DEBUG

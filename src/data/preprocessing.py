@@ -1,11 +1,13 @@
+import logging
 from abc import ABC, abstractmethod
 from typing import Callable, List
 
 import numpy as np
 import pandas as pd
 import torch
-from loguru import logger
 from torch.utils.data import Dataset
+
+logger = logging.getLogger(__name__)
 
 
 class RatingDataset(Dataset):
@@ -42,7 +44,7 @@ class Pipeline:
         self.steps = steps
 
     def __call__(self, df: pd.DataFrame) -> RatingDataset:
-        logger.debug("Pre-processing:")
+        logger.info("Pre-processing:")
 
         for step in self.steps:
             df = step(df)
@@ -50,7 +52,7 @@ class Pipeline:
         return self._to_torch(df)
 
     def _to_torch(self, df: pd.DataFrame):
-        logger.debug("Converting DataFrame to torch tensors")
+        logger.info("Converting DataFrame to torch tensors")
         query_df = (
             df.groupby("query_id")
             .agg(doc_ids=("doc_id", list), y=("y", list), n=("y", "count"))
@@ -80,7 +82,7 @@ class StratifiedTruncate(Step):
         self.random_state = random_state
 
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
-        logger.debug(
+        logger.info(
             f"Stratified sampling queries to max {self.max_length} documents, "
             f"random_state: {self.random_state}"
         )
@@ -100,7 +102,7 @@ class Shuffle(Step):
         self.random_state = random_state
 
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
-        logger.debug(
+        logger.info(
             f"Uniformly shuffle documents per query, "
             f"random_state: {self.random_state}"
         )
@@ -113,6 +115,6 @@ class Shuffle(Step):
 
 class GenerateDocumentIds(Step):
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
-        logger.debug("Generating surrogate document ids")
+        logger.info("Generating surrogate document ids")
         df["doc_id"] = np.arange(len(df))
         return df
