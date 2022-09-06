@@ -18,5 +18,4 @@ dependencies:
       - lightgbm==3.3.2
       - pre-commit==2.20.0
       - wget==3.2
-      - pytorchltr==0.2.1
       - wandb==0.13.2
