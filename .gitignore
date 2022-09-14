@@ -1,5 +1,6 @@
 # System
 .DS_Store
+*.log
 
 # IDEs
 .idea
@@ -8,8 +9,12 @@
 # Python files
 *.pyc
 .ipynb_checkpoints
+.hydra
 
 # Project outputs
 lightning_logs
 outputs
 wandb
+
+#Misc
+message.txt

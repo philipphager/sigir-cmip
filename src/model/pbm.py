@@ -35,15 +35,20 @@ class PBM(pl.LightningModule):
         else:
             raise ValueError(f"Unsupported optimizer: {self.optimizer}")
 
-    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(
+        self, x: torch.Tensor, click_pred: bool = True
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         n_batch, n_items = x.shape
 
-        ranks = torch.arange(n_items, device=self.device).repeat(n_batch, 1)
-        examination = self.examination(ranks)
         relevance = self.relevance(x)
-        y_predict = examination * relevance
+        if click_pred:
+            ranks = torch.arange(n_items, device=self.device).repeat(n_batch, 1)
+            examination = self.examination(ranks)
+            y_predict = examination * relevance
 
-        return y_predict.squeeze(), relevance.squeeze()
+            return y_predict.squeeze(), relevance.squeeze()
+        else:
+            return relevance.squeeze()
 
     def training_step(self, batch, idx):
         q, x, y, y_click, n = batch
@@ -65,11 +70,17 @@ class PBM(pl.LightningModule):
         self.log_dict(metrics)
         return loss
 
-    def test_step(self, batch, idx):
-        q, x, y, y_click, n = batch
-
-        y_predict_click, y_predict = self.forward(x)
-        metrics = get_metrics(y_predict, y, n, "test_")
+    def test_step(self, batch, idx, dl_idx):
+        if dl_idx == 0:
+            q, x, y, y_click, n = batch
+            y_predict_click, y_predict = self.forward(x)
+            metrics = get_metrics(
+                y_predict, y, n, "test_clicks_", y_predict_click, y_click
+            )
+        else:
+            query_ids, x, y, n = batch
+            y_predict = self.forward(x, click_pred=False)
+            metrics = get_metrics(y_predict, y, n, "test_rels_")
 
         self.log_dict(metrics)
         return metrics

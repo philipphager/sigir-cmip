@@ -3,6 +3,7 @@ from torch.utils.data import Dataset
 
 from src.data.preprocessing import RatingDataset
 from src.simulation.logging_policy import LoggingPolicy
+from src.simulation.query_dist.base import QueryDist
 from src.simulation.user_model.base import UserModel
 
 
@@ -30,17 +31,24 @@ class ClickDataset(Dataset):
 
 class Simulator:
     def __init__(
-        self, logging_policy: LoggingPolicy, user_model: UserModel, n_sessions: int
+        self,
+        logging_policy: LoggingPolicy,
+        user_model: UserModel,
+        query_dist: QueryDist,
+        n_sessions: int,
+        rank_size: int,
     ):
         self.logging_policy = logging_policy
         self.user_model = user_model
         self.n_sessions = n_sessions
+        self.query_dist = query_dist
+        self.rank_size = rank_size
 
     def __call__(self, dataset: RatingDataset, eps: float = 1e-9):
         query_ids, x, y, n = dataset[:]
 
         # Uniform sample queries
-        sample_ids = torch.randint(len(query_ids), (self.n_sessions,))
+        sample_ids = self.query_dist(len(query_ids), self.n_sessions)
         query_ids = query_ids[sample_ids]
         x = x[sample_ids]
         y = y[sample_ids]
@@ -54,12 +62,12 @@ class Simulator:
         # Sample logging policy rankings using Gumbel Noise trick
         noise = torch.rand_like(y_predict.float())
         y_predict = y_predict - torch.log(-torch.log(noise))
-        idx = torch.argsort(-y_predict)
-        x = torch.gather(x, 1, idx)
-        y = torch.gather(y, 1, idx)
+        idx = torch.argsort(-y_predict)[:, : self.rank_size]
+        x_impressed = torch.gather(x, 1, idx)
+        y_impressed = torch.gather(y, 1, idx)
 
         # Sample clicks
-        click_probabilities = self.user_model(y)
+        click_probabilities = self.user_model(y_impressed)
         y_clicks = torch.bernoulli(click_probabilities)
 
-        return ClickDataset(query_ids, x, y, y_clicks, n)
+        return ClickDataset(query_ids, x_impressed, y_impressed, y_clicks, n)

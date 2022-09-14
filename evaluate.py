@@ -1,11 +1,15 @@
 import logging
 import os
+import warnings
 
 import hydra
-import torch
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
+
+warnings.filterwarnings(
+    "ignore", ".*Consider increasing the value of the `num_workers` argument*"
+)
 
 logger = logging.getLogger(__name__)
 
@@ -20,27 +24,20 @@ def main(config: DictConfig):
     train = dataset.load("train")
     n_documents = train.n.sum() + 1
 
-    train_simulator = instantiate(config.train_simulator)
-    train_clicks = train_simulator(train)
-
-    val_simulator = instantiate(config.val_simulator)
-    val_clicks = val_simulator(train)
-
     test_simulator = instantiate(config.test_simulator)
     test_clicks = test_simulator(train)
 
-    train_loader = instantiate(config.train_loader, dataset=train_clicks)
-    val_loader = instantiate(config.val_test_loader, dataset=val_clicks)
-    test_loader = instantiate(config.val_test_loader, dataset=test_clicks)
+    datamodule = instantiate(
+        config.datamodule, datasets={"test_clicks": test_clicks, "test_rels": train}
+    )
 
-    trainer = instantiate(config.trainer)
+    trainer = instantiate(config.test_trainer)
     model = instantiate(config.model, n_documents=n_documents)
 
-    trainer.fit(model, train_loader, val_loader)
-    trainer.test(dataloaders=test_loader, ckpt_path="best")
-
-    logging.info(
-        f"Inferred examination probability: {model.examination(torch.arange(10))}"
+    trainer.test(
+        model,
+        datamodule,
+        ckpt_path=config.data.base_dir + "checkpoints/" + config.filename + ".ckpt",
     )
 
 

@@ -6,7 +6,7 @@ def ndcg(
     y_true: torch.LongTensor,
     n: torch.LongTensor,
     k: int = None,
-):
+) -> torch.FloatTensor:
     """
     nDCG with gain
 
@@ -45,11 +45,28 @@ def ndcg(
         )  # we put 0 nDCG when iDCG = 0
 
 
+def perplexity(
+    y_predict_click: torch.FloatTensor, y_true_click: torch.LongTensor, k: int = None
+) -> torch.FloatTensor:
+    """
+    Perplexity, as in [Dupret and Piwowarski, 2008]
+
+    - y_predict : torch.FloatTensor[batch_size, rank_size] -> click predictions
+    - y_true : torch.LongTensor[batch_size, rank_size] -> click ground truth
+    - k : int -> rank for PPL@k, average perplexity if k == None.
+    """
+    pass
+
+
 def get_metrics(
-    y_predict: torch.Tensor, y_true: torch.Tensor, n: torch.Tensor, prefix: str = ""
+    y_predict: torch.Tensor,
+    y_true: torch.Tensor,
+    n: torch.Tensor,
+    prefix: str = "",
+    y_predict_clicks: torch.Tensor = None,
+    y_true_clicks: torch.Tensor = None,
 ):
     return {
-        # f"{prefix}arp": arp(y_predict, y_true, n).mean().detach(),
         f"{prefix}ndcg@1": ndcg(y_predict, y_true, n, k=1).mean().detach(),
         f"{prefix}ndcg@5": ndcg(y_predict, y_true, n, k=5).mean().detach(),
         f"{prefix}ndcg@10": ndcg(y_predict, y_true, n, k=10).mean().detach(),
