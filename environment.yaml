@@ -12,6 +12,7 @@ dependencies:
   - pyarrow=9.0.0
   - numpy=1.23.2
   - pip=21.2.4
+  - rich=12.5.1
   - pip:
       - hydra_submitit_launcher==1.2.0
       - pytorch_lightning==1.6.5

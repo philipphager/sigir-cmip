@@ -5,6 +5,8 @@ defaults:
   - logging_policy@test_policy: uniform
   - user_model@train_user: graded-pbm
   - user_model@test_user: graded-pbm
+  - query_dist@train_qdist: powerlaw
+  - query_dist@test_qdist: powerlaw
   - model: pbm
   - env
 
@@ -12,46 +14,65 @@ train_simulator:
   _target_: src.simulation.Simulator
   logging_policy: ${train_policy}
   user_model: ${train_user}
+  query_dist: ${train_qdist}
   n_sessions: 5_000_000
+  rank_size: 10
 
 val_simulator:
   _target_: src.simulation.Simulator
   logging_policy: ${train_policy}
   user_model: ${train_user}
+  query_dist: ${train_qdist}
   n_sessions: 1_000_000
+  rank_size: 10
 
 test_simulator:
   _target_: src.simulation.Simulator
   logging_policy: ${test_policy}
   user_model: ${test_user}
+  query_dist: ${test_qdist}
   n_sessions: 1_000_000
+  rank_size: 10
 
-train_loader:
-  _target_: torch.utils.data.DataLoader
-  dataset: ???
+datamodule:
+  _target_: src.data.ClickModelDataModule
+  datasets: ???
   batch_size: 256
   shuffle: True
   num_workers: 2
   persistent_workers: True
 
-val_test_loader:
-  _target_: torch.utils.data.DataLoader
-  dataset: ???
-  batch_size: 256
-  shuffle: False
-  num_workers: 2
-
-trainer:
+train_val_trainer:
   _target_: pytorch_lightning.Trainer
   max_epochs: 10
   accelerator: auto
+  strategy: ddp_find_unused_parameters_false
   callbacks:
     - _target_: pytorch_lightning.callbacks.EarlyStopping
       monitor: val_loss
       patience: 1
+    - _target_: pytorch_lightning.callbacks.RichProgressBar
+    - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+      dirpath: ${data.base_dir}checkpoints/
+      filename: ${filename}
+      monitor: val_loss
+      mode: min
+  logger:
+    - _target_: pytorch_lightning.loggers.WandbLogger
+      project: "cm-bias-evaluation"
+      save_dir: wandb
+
+test_trainer:
+  _target_: pytorch_lightning.Trainer
+  max_epochs: -1
+  accelerator: auto
+  devices: 1
+  callbacks:
+    - _target_: pytorch_lightning.callbacks.RichProgressBar
   logger:
     - _target_: pytorch_lightning.loggers.WandbLogger
       project: "cm-bias-evaluation"
       save_dir: wandb
 
 random_state: 0
+filename: "${hydra:runtime.choices.model}_${hydra:runtime.choices.logging_policy@train_policy}_${hydra:runtime.choices.user_model@train_user}_${hydra:runtime.choices.data}_seed-${random_state}"
