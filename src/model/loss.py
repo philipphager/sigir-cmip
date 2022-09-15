@@ -16,7 +16,7 @@ class BinaryCrossEntropy(nn.Module):
         )
 
         loss = mask_padding(loss, n)
-        return loss.sum(dim=1).mean()
+        return loss  # .sum(dim=1).mean()
 
 
 def mask_padding(x: torch.Tensor, n: torch.Tensor, fill: float = 0.0):
