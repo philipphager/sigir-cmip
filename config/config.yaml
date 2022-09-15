@@ -50,7 +50,7 @@ train_val_trainer:
   callbacks:
     - _target_: pytorch_lightning.callbacks.EarlyStopping
       monitor: val_loss
-      patience: 1
+      patience: 10
     - _target_: pytorch_lightning.callbacks.RichProgressBar
     - _target_: pytorch_lightning.callbacks.ModelCheckpoint
       dirpath: ${data.base_dir}checkpoints/

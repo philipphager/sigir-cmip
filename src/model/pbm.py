@@ -55,32 +55,33 @@ class PBM(pl.LightningModule):
 
         y_predict, _ = self.forward(x)
         loss = self.loss(y_predict, y_click, n)
+        metrics = get_metrics(loss, prefix="train_")
 
-        self.log("train_loss", loss)
-        return loss
+        self.log_dict(metrics)
+        return loss.sum(dim=1).mean()
 
     def validation_step(self, batch, idx):
         q, x, y, y_click, n = batch
 
         y_predict_click, y_predict = self.forward(x)
         loss = self.loss(y_predict_click, y_click, n)
-        metrics = get_metrics(y_predict, y, n, "val_")
+        metrics = get_metrics(loss, y_predict, y, n, "val_")
 
-        self.log("val_loss", loss)
         self.log_dict(metrics)
-        return loss
+        return loss.sum(dim=1).mean()
 
     def test_step(self, batch, idx, dl_idx):
         if dl_idx == 0:
             q, x, y, y_click, n = batch
             y_predict_click, y_predict = self.forward(x)
-            metrics = get_metrics(
-                y_predict, y, n, "test_clicks_", y_predict_click, y_click
-            )
+            loss = self.loss(y_predict_click, y_click, n)
+            metrics = get_metrics(loss, y_predict, y, n, "test_clicks_")
         else:
             query_ids, x, y, n = batch
             y_predict = self.forward(x, click_pred=False)
-            metrics = get_metrics(y_predict, y, n, "test_rels_")
+            metrics = get_metrics(
+                y_predict=y_predict, y_true=y, n=n, prefix="test_rels_"
+            )
 
         self.log_dict(metrics)
         return metrics
