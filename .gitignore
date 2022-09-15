@@ -18,3 +18,4 @@ wandb
 
 #Misc
 message.txt
+*.sh

@@ -44,7 +44,7 @@ datamodule:
 
 train_val_trainer:
   _target_: pytorch_lightning.Trainer
-  max_epochs: 10
+  max_epochs: 1
   accelerator: auto
   strategy: ddp_find_unused_parameters_false
   callbacks:
@@ -67,12 +67,15 @@ test_trainer:
   max_epochs: -1
   accelerator: auto
   devices: 1
+  logger: ???
   callbacks:
     - _target_: pytorch_lightning.callbacks.RichProgressBar
-  logger:
-    - _target_: pytorch_lightning.loggers.WandbLogger
-      project: "cm-bias-evaluation"
-      save_dir: wandb
+  
+test_logger:
+  _target_: pytorch_lightning.loggers.WandbLogger
+  project: "cm-bias-evaluation"
+  save_dir: wandb
+  id: ???
 
 random_state: 0
 filename: "${hydra:runtime.choices.model}_${hydra:runtime.choices.logging_policy@train_policy}_${hydra:runtime.choices.user_model@train_user}_${hydra:runtime.choices.data}_seed-${random_state}"
