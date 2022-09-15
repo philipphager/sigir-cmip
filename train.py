@@ -6,7 +6,8 @@ import hydra
 import torch
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
-from pytorch_lightning import seed_everything
+from pytorch_lightning import Trainer, seed_everything
+from pytorch_lightning.utilities import rank_zero_only
 
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"
@@ -14,6 +15,12 @@ warnings.filterwarnings(
 warnings.filterwarnings("ignore", ".*exists and is not empty*")
 
 logger = logging.getLogger(__name__)
+
+
+@rank_zero_only
+def get_wandb_id(trainer: Trainer, dirpath: str):
+    with open(dirpath + "wandb_id.txt", "w") as f:
+        f.write(trainer.logger.experiment.id)
 
 
 @hydra.main(config_path="config", config_name="config", version_base="1.2")
@@ -48,6 +55,9 @@ def main(config: DictConfig):
     logging.info(
         f"Inferred examination probability: {model.examination(torch.arange(10, device = model.device))}"
     )
+
+    get_wandb_id(trainer, config.data.base_dir)
+    # os.write(2, trainer.logger.experiment.id)
 
 
 if __name__ == "__main__":

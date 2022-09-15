@@ -31,7 +31,11 @@ def main(config: DictConfig):
         config.datamodule, datasets={"test_clicks": test_clicks, "test_rels": train}
     )
 
-    trainer = instantiate(config.test_trainer)
+    with open(config.data.base_dir + "wandb_id.txt", "r") as f:
+        wandb_id = f.readline()
+    wandb_logger = instantiate(config.test_logger, id=wandb_id)
+
+    trainer = instantiate(config.test_trainer, logger=wandb_logger)
     model = instantiate(config.model, n_documents=n_documents)
 
     trainer.test(
