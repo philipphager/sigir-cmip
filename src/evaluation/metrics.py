@@ -76,6 +76,7 @@ def get_metrics(
 
     if y_true is not None:
         n_clamp = torch.clamp(n, max=y_true.shape[1])
+        ranks = torch.tensor([1, 5, 10, 0], device=y_predict.device)
         batch_ndcg = ndcg(y_predict, y_true, n_clamp, ranks=ranks).mean(dim=0).detach()
         ndcg_dict = {
             f"{prefix}ndcg{k}": batch_ndcg[i]
