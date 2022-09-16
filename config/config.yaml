@@ -7,7 +7,7 @@ defaults:
   - user_model@test_user: graded-pbm
   - query_dist@train_qdist: powerlaw
   - query_dist@test_qdist: powerlaw
-  - model: pbm
+  - model: ubm
   - env
 
 train_simulator:
@@ -44,13 +44,13 @@ datamodule:
 
 train_val_trainer:
   _target_: pytorch_lightning.Trainer
-  max_epochs: 1
+  max_epochs: 10
   accelerator: auto
   strategy: ddp_find_unused_parameters_false
   callbacks:
     - _target_: pytorch_lightning.callbacks.EarlyStopping
       monitor: val_loss
-      patience: 10
+      patience: 1
     - _target_: pytorch_lightning.callbacks.RichProgressBar
     - _target_: pytorch_lightning.callbacks.ModelCheckpoint
       dirpath: ${data.base_dir}checkpoints/

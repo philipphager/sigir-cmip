@@ -6,7 +6,7 @@ from torch import nn
 from .base import ClickModel
 
 
-class PBM(ClickModel):
+class UBM(ClickModel):
     def __init__(
         self,
         loss: nn.Module,
@@ -18,7 +18,7 @@ class PBM(ClickModel):
         super().__init__(loss, optimizer, learning_rate)
 
         self.relevance = nn.Sequential(nn.Embedding(n_documents, 1), nn.Sigmoid())
-        self.examination = nn.Sequential(nn.Embedding(n_results, 1), nn.Sigmoid())
+        self.examination = nn.Sequential(nn.Embedding(n_results**2, 1), nn.Sigmoid())
 
     def forward(
         self,
@@ -30,10 +30,18 @@ class PBM(ClickModel):
 
         relevance = self.relevance(x)
         if click_pred:
-            ranks = torch.arange(n_items, device=self.device).repeat(n_batch, 1)
-            examination = self.examination(ranks)
-            y_predict = examination * relevance
+            ranks = torch.arange(10, device=self.device).repeat(n_batch, 1)
+            latest_clicked_ranks = torch.zeros(
+                n_batch, n_items, dtype=torch.long, device=self.device
+            )
+            for r in range(n_items - 1):
+                latest_clicked_ranks[:, r + 1] = torch.where(
+                    true_clicks[:, r] == 1, ranks[:, r] + 1, latest_clicked_ranks[:, r]
+                )
 
+            examination = self.examination(latest_clicked_ranks + ranks * n_items)
+
+            y_predict = examination * relevance
             return y_predict.squeeze(), relevance.squeeze()
         else:
             return relevance.squeeze()
