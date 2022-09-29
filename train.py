@@ -3,7 +3,6 @@ import os
 import warnings
 
 import hydra
-import torch
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Trainer, seed_everything
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @rank_zero_only
-def get_wandb_id(trainer: Trainer, dirpath: str):
+def write_wandb_id(trainer: Trainer, dirpath: str):
     with open(dirpath + "wandb_id.txt", "w") as f:
         f.write(trainer.logger.experiment.id)
 
@@ -52,12 +51,11 @@ def main(config: DictConfig):
 
     trainer.fit(model, datamodule)
 
-    logging.info(
+    """logging.info(
         f"Inferred examination probability: {model.examination(torch.arange(10, device = model.device))}"
-    )
+    )"""
 
-    get_wandb_id(trainer, config.data.base_dir)
-    # os.write(2, trainer.logger.experiment.id)
+    write_wandb_id(trainer, config.data.base_dir)
 
 
 if __name__ == "__main__":
