@@ -8,6 +8,7 @@ defaults:
   - query_dist@train_qdist: powerlaw
   - query_dist@test_qdist: powerlaw
   - model: cacm-minus
+  - model: ubm
   - env
 
 train_simulator:
@@ -45,8 +46,8 @@ datamodule:
 train_val_trainer:
   _target_: pytorch_lightning.Trainer
   max_epochs: 10
-  accelerator: cpu
-  #strategy: ddp_find_unused_parameters_false
+  accelerator: auto
+  strategy: ddp_find_unused_parameters_false
   callbacks:
     - _target_: pytorch_lightning.callbacks.EarlyStopping
       monitor: val_loss
