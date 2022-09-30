@@ -1,0 +1,10 @@
+defaults:
+  - base
+
+_target_: src.model.NCM
+optimizer: adam
+learning_rate: 0.01
+query_embedd_dim: 64
+doc_embedd_dim: 64
+click_embedd_dim: 4
+inner_state_dim: 32

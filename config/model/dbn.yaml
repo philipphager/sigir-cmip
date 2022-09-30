@@ -1,7 +1,6 @@
 defaults:
   - base
 
-_target_: src.model.PBM
-n_results: "${data.n_results}"
+_target_: src.model.DBN
 optimizer: adam
 learning_rate: 0.01
