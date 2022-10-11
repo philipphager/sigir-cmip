@@ -17,8 +17,8 @@ def ndcg(
     """
     # For when we have less than max_docs
     mask = torch.arange(y_predict.shape[1], device=y_predict.device).repeat(len(n), 1)
-    y_predict[mask > n.unsqueeze(1)] = torch.tensor(-float("inf"))
-    y_true[mask > n.unsqueeze(1)] = 0
+    y_predict[mask >= n.unsqueeze(1)] = torch.tensor(-float("inf"))
+    y_true[mask >= n.unsqueeze(1)] = 0
 
     sorted_pred = y_true[
         torch.arange(len(y_true)).unsqueeze(1),
@@ -32,7 +32,7 @@ def ndcg(
         )
     )
     dcg = (2**sorted_pred - 1) / propensities
-    dcg[mask > n.unsqueeze(1)] = 0
+    dcg[mask >= n.unsqueeze(1)] = 0
     idcg = (2**sorted_rels - 1) / propensities
 
     return (
