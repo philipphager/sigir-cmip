@@ -52,8 +52,8 @@ class ClickModel(pl.LightningModule):
         y_predict_click, y_predict = self.forward(x, true_clicks=y_click)
         loss = self.loss(y_predict_click, y_click, n)
 
-        click_metrics = get_click_metrics(y_predict_click, y_click, n, prefix="val_")
-        relevance_metrics = get_relevance_metrics(y_predict, y, n, prefix="val_")
+        click_metrics = get_click_metrics(y_predict_click, y_click, n, "val_")
+        relevance_metrics = get_relevance_metrics(y_predict, y, n, "val_")
         metrics = click_metrics | relevance_metrics
         metrics["val_loss"] = loss
         self.log_dict(metrics)

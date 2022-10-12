@@ -86,7 +86,7 @@ def get_click_metrics(
     y_predict_click: torch.FloatTensor,
     y_click: torch.FloatTensor,
     n: torch.LongTensor,
-    prefix: str = "",
+    prefix: str,
 ):
     ranks = torch.tensor([1, 5, 10, 0], device=y_click.device)
     batch_ppl = perplexity(y_predict_click, y_click, n, ranks).detach()
@@ -101,7 +101,7 @@ def get_relevance_metrics(
     y_predict: torch.FloatTensor,
     y_true: torch.LongTensor,
     n: torch.LongTensor,
-    prefix: str = "",
+    prefix: str,
 ):
     ranks = torch.tensor([1, 5, 10, 0], device=y_true.device)
     batch_ndcg = ndcg(y_predict, y_true, n, ranks).detach()
