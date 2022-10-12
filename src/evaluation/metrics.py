@@ -90,6 +90,7 @@ def get_click_metrics(
 ):
     ranks = torch.tensor([1, 5, 10, 0], device=y_click.device)
     batch_ppl = perplexity(y_predict_click, y_click, n, ranks).detach()
+
     return {
         f"{prefix}ppl{k}": batch_ppl[i]
         for i, k in enumerate(["@1", "@5", "@10", "_avg"])
@@ -104,6 +105,7 @@ def get_relevance_metrics(
 ):
     ranks = torch.tensor([1, 5, 10, 0], device=y_true.device)
     batch_ndcg = ndcg(y_predict, y_true, n, ranks).detach()
+
     return {
         f"{prefix}ndcg{k}": batch_ndcg[i] for i, k in enumerate(["@1", "@5", "@10", ""])
     }
