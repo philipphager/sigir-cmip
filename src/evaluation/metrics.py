@@ -83,9 +83,9 @@ def perplexity(
 
 
 def get_click_metrics(
-    y_predict_click: torch.FloatTensor = None,
-    y_click: torch.FloatTensor = None,
-    n: torch.LongTensor = None,
+    y_predict_click: torch.FloatTensor,
+    y_click: torch.FloatTensor,
+    n: torch.LongTensor,
     prefix: str = "",
 ):
     ranks = torch.tensor([1, 5, 10, 0], device=y_click.device)
@@ -98,9 +98,9 @@ def get_click_metrics(
 
 
 def get_relevance_metrics(
-    y_predict: torch.FloatTensor = None,
-    y_true: torch.LongTensor = None,
-    n: torch.LongTensor = None,
+    y_predict: torch.FloatTensor,
+    y_true: torch.LongTensor,
+    n: torch.LongTensor,
     prefix: str = "",
 ):
     ranks = torch.tensor([1, 5, 10, 0], device=y_true.device)
