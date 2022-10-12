@@ -47,24 +47,24 @@ class Simulator:
     def __call__(self, dataset: RatingDataset, eps: float = 1e-9):
         query_ids, x, y, n = dataset[:]
 
-        # Uniform sample queries
+        # Sample queries
         sample_ids = self.query_dist(len(query_ids), self.n_sessions)
         query_ids = query_ids[sample_ids]
         x = x[sample_ids]
         y = y[sample_ids]
         n = n[sample_ids]
 
-        dataset = RatingDataset(query_ids, x, y, n)
-
         # Get scores from logging policy
+        dataset = RatingDataset(query_ids, x, y, n)
         y_predict = self.logging_policy.predict(dataset)
 
-        # Sample logging policy rankings using Gumbel Noise trick
+        # Sample top-k rankings using Gumbel noise trick
         noise = torch.rand_like(y_predict.float())
         y_predict = y_predict - torch.log(-torch.log(noise))
         idx = torch.argsort(-y_predict)[:, : self.rank_size]
         x_impressed = torch.gather(x, 1, idx)
         y_impressed = torch.gather(y, 1, idx)
+        n = n.clamp(max=self.rank_size)
 
         # Sample clicks
         click_probabilities = self.user_model(y_impressed)
