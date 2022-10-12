@@ -16,6 +16,7 @@ def ndcg(
     - y_true: torch.LongTensor[batch_size, max_docs] -> relevance ground truth
     - n: torch.LongTensor[batch_size] -> number of documents in each query
     - ranks: torch.LongTensor -> cutoff ranks for nDCG (0 for no cutoff)
+    return: torch.FloatTensor[max_docs] -> ndcg@k for each cutoff rank k
     """
     # Mask padding in queries with less than max docs
     y_predict = mask_padding(y_predict, n, fill=-float("inf"))
@@ -58,8 +59,7 @@ def perplexity(
     - n: torch.LongTensor[batch_size] -> number of documents in each query
     - ranks: torch.LongTensor[batch_size] -> cutoff ranks for ppl (0 for no cutoff)
     - eps: float -> Clipping value to avoid -inf in log computation
-    :return: torch.FloatTensor[max_docs] -> Returns the perplexity@k for each supplied
-        cutoff rank k.
+    return: torch.FloatTensor[max_docs] -> perplexity@k for each cutoff rank k
     """
     # Count documents per rank
     n_batch, n_results = y_click.shape
