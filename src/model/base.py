@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 import torch
 from torch import nn
 
-from src.evaluation.metrics import get_metrics
+from src.evaluation.metrics import get_click_metrics, get_relevance_metrics
 
 
 class ClickModel(pl.LightningModule):
@@ -37,35 +37,43 @@ class ClickModel(pl.LightningModule):
     def training_step(self, batch, idx):
         q, x, y, y_click, n = batch
 
-        y_predict, _ = self.forward(x, true_clicks=y_click)
-        loss = self.loss(y_predict, y_click, n)
-        metrics = get_metrics(loss, prefix="train_")
+        y_predict_click, _ = self.forward(x, true_clicks=y_click)
+        loss = self.loss(y_predict_click, y_click, n)
 
+        metrics = get_click_metrics(y_predict_click, y_click, prefix="train_")
+        metrics["train_loss"] = loss
         self.log_dict(metrics)
-        return loss.sum(dim=1).mean()
+
+        return loss
 
     def validation_step(self, batch, idx):
         q, x, y, y_click, n = batch
 
         y_predict_click, y_predict = self.forward(x, true_clicks=y_click)
         loss = self.loss(y_predict_click, y_click, n)
-        metrics = get_metrics(loss, y_predict, y, n, "val_")
 
+        click_metrics = get_click_metrics(y_predict_click, y_click, prefix="val_")
+        relevance_metrics = get_relevance_metrics(y_predict, y, prefix="val_")
+        metrics = click_metrics | relevance_metrics
+        metrics["val_loss"] = loss
         self.log_dict(metrics)
-        return loss.sum(dim=1).mean()
+
+        return loss
 
     def test_step(self, batch, idx, dl_idx):
         if dl_idx == 0:
+            # Click dataset
             q, x, y, y_click, n = batch
             y_predict_click, y_predict = self.forward(x, true_clicks=y_click)
             loss = self.loss(y_predict_click, y_click, n)
-            metrics = get_metrics(loss, y_predict, y, n, "test_clicks_")
+
+            metrics = get_click_metrics(y_predict_click, y_click, prefix="test_clicks_")
+            metrics["test_loss"] = loss
         else:
+            # Rating dataset
             query_ids, x, y, n = batch
             y_predict = self.forward(x, click_pred=False)
-            metrics = get_metrics(
-                y_predict=y_predict, y_true=y, n=n, prefix="test_rels_"
-            )
+            metrics = get_relevance_metrics(y_predict, y, prefix="test_rels_")
 
         self.log_dict(metrics)
         return metrics

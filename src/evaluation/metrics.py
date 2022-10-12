@@ -1,5 +1,7 @@
 import torch
 
+from src.model.loss import mask_padding
+
 
 def ndcg(
     y_predict: torch.FloatTensor,
@@ -41,47 +43,67 @@ def ndcg(
     )[:, ranks - 1]
 
 
-def perplexity(loss: torch.FloatTensor, ranks: torch.LongTensor) -> torch.FloatTensor:
+def perplexity(
+    y_predict_click: torch.FloatTensor,
+    y_click: torch.LongTensor,
+    n: torch.LongTensor,
+    ranks: torch.LongTensor,
+    eps: float = 1e-10,
+) -> torch.FloatTensor:
     """
     Perplexity, as in [Dupret and Piwowarski, 2008]
 
-    - loss : Non-aggregated cross-entropy loss
-    - ranks : torch.LongTensor -> ranks for PPL (0 for average PPL)
+    - y_predict_click: torch.FloatTensor[batch_size, max_docs] -> click predictions
+    - y_click: torch.LongTensor[batch_size, max_docs] -> click ground truth
+    - n: torch.LongTensor[batch_size] -> number of documents in each query
+    - ranks: torch.LongTensor[batch_size] -> cutoff ranks for ppl (0 for no cutoff)
+    - eps: float -> Clipping value to avoid -inf in log computation
+    :return: torch.FloatTensor[max_docs] -> Returns the perplexity@k for each supplied
+        cutoff rank k.
     """
-    log2loss = loss / torch.log(torch.full_like(loss, 2))
-    ppl_r = 2 ** log2loss.mean(dim=0)
-    ppl = torch.cat([ppl_r.mean().unsqueeze(0), ppl_r], dim=0)
+    # Count documents per rank
+    n_batch, n_results = y_click.shape
+    mask = torch.arange(n_results).repeat((n_batch, 1))
+    mask = mask < n.unsqueeze(1)
+    docs_per_rank = mask.sum(dim=0)
+
+    # Binary cross-entropy with log2
+    loss = -(
+        y_click * torch.log2(y_predict_click.clip(min=eps))
+        + (1 - y_click) * torch.log2((1 - y_predict_click).clip(min=eps))
+    )
+
+    # Mask padding and average perplexity per rank
+    loss = mask_padding(loss, n, fill=0)
+    rank_ppl = 2 ** (loss.sum(dim=0) / docs_per_rank)
+    mean_ppl = rank_ppl.mean()
+    ppl = torch.cat([mean_ppl.unsqueeze(0), rank_ppl])
+
     return ppl[ranks]
 
 
-def get_metrics(
-    loss: torch.FloatTensor = None,
-    y_predict: torch.Tensor = None,
-    y_true: torch.Tensor = None,
-    n: torch.Tensor = None,
+def get_click_metrics(
+    y_predict_click: torch.FloatTensor = None,
+    y_click: torch.FloatTensor = None,
+    n: torch.LongTensor = None,
     prefix: str = "",
 ):
-    metrics = {}
+    ranks = torch.tensor([1, 5, 10, 0], device=y_click.device)
+    batch_ppl = perplexity(y_predict_click, y_click, n, ranks).detach()
+    return {
+        f"{prefix}ppl{k}": batch_ppl[i]
+        for i, k in enumerate(["@1", "@5", "@10", "_avg"])
+    }
 
-    if loss is not None:
-        metrics = {f"{prefix}loss": loss.sum(dim=1).mean()}
 
-        ranks = torch.tensor([1, 5, 10, 0], device=loss.device)
-        batch_ppl = perplexity(loss, ranks=ranks).detach()
-        ppl_dict = {
-            f"{prefix}ppl{k}": batch_ppl[i]
-            for i, k in enumerate(["@1", "@5", "@10", "_avg"])
-        }
-        metrics = {**metrics, **ppl_dict}
-
-    if y_true is not None:
-        n_clamp = torch.clamp(n, max=y_true.shape[1])
-        ranks = torch.tensor([1, 5, 10, 0], device=y_predict.device)
-        batch_ndcg = ndcg(y_predict, y_true, n_clamp, ranks=ranks).mean(dim=0).detach()
-        ndcg_dict = {
-            f"{prefix}ndcg{k}": batch_ndcg[i]
-            for i, k in enumerate(["@1", "@5", "@10", ""])
-        }
-        metrics = {**metrics, **ndcg_dict}
-
-    return metrics
+def get_relevance_metrics(
+    y_predict: torch.FloatTensor = None,
+    y_true: torch.LongTensor = None,
+    n: torch.LongTensor = None,
+    prefix: str = "",
+):
+    ranks = torch.tensor([1, 5, 10, 0], device=y_true.device)
+    batch_ndcg = ndcg(y_predict, y_true, n, ranks).detach()
+    return {
+        f"{prefix}ndcg{k}": batch_ndcg[i] for i, k in enumerate(["@1", "@5", "@10", ""])
+    }
