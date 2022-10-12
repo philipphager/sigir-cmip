@@ -40,7 +40,7 @@ class ClickModel(pl.LightningModule):
         y_predict_click, _ = self.forward(x, true_clicks=y_click)
         loss = self.loss(y_predict_click, y_click, n)
 
-        metrics = get_click_metrics(y_predict_click, y_click, prefix="train_")
+        metrics = get_click_metrics(y_predict_click, y_click, n, "train_")
         metrics["train_loss"] = loss
         self.log_dict(metrics)
 
@@ -52,8 +52,8 @@ class ClickModel(pl.LightningModule):
         y_predict_click, y_predict = self.forward(x, true_clicks=y_click)
         loss = self.loss(y_predict_click, y_click, n)
 
-        click_metrics = get_click_metrics(y_predict_click, y_click, prefix="val_")
-        relevance_metrics = get_relevance_metrics(y_predict, y, prefix="val_")
+        click_metrics = get_click_metrics(y_predict_click, y_click, n, prefix="val_")
+        relevance_metrics = get_relevance_metrics(y_predict, y, n, prefix="val_")
         metrics = click_metrics | relevance_metrics
         metrics["val_loss"] = loss
         self.log_dict(metrics)
@@ -67,13 +67,13 @@ class ClickModel(pl.LightningModule):
             y_predict_click, y_predict = self.forward(x, true_clicks=y_click)
             loss = self.loss(y_predict_click, y_click, n)
 
-            metrics = get_click_metrics(y_predict_click, y_click, prefix="test_clicks_")
+            metrics = get_click_metrics(y_predict_click, y_click, n, "test_clicks_")
             metrics["test_loss"] = loss
         else:
             # Rating dataset
             query_ids, x, y, n = batch
             y_predict = self.forward(x, click_pred=False)
-            metrics = get_relevance_metrics(y_predict, y, prefix="test_rels_")
+            metrics = get_relevance_metrics(y_predict, y, n, "test_rels_")
 
         self.log_dict(metrics)
         return metrics
