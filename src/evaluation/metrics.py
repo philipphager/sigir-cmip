@@ -17,10 +17,9 @@ def ndcg(
     - n : torch.LongTensor[batch_size] -> number of documents in each query
     - ranks : torch.LongTensor -> cutoff ranks for nDCG (0 for no cutoff)
     """
-    # For when we have less than max_docs
-    mask = torch.arange(y_predict.shape[1], device=y_predict.device).repeat(len(n), 1)
-    y_predict[mask >= n.unsqueeze(1)] = torch.tensor(-float("inf"))
-    y_true[mask >= n.unsqueeze(1)] = 0
+    # Mask padding in queries with less than max docs
+    y_predict = mask_padding(y_predict, n, fill=-float("inf"))
+    y_true = mask_padding(y_true, n, fill=0)
 
     sorted_pred = y_true[
         torch.arange(len(y_true)).unsqueeze(1),
@@ -34,13 +33,14 @@ def ndcg(
         )
     )
     dcg = (2**sorted_pred - 1) / propensities
-    dcg[mask >= n.unsqueeze(1)] = 0
+    dcg = mask_padding(dcg, n, fill=0)
     idcg = (2**sorted_rels - 1) / propensities
 
-    return (
-        torch.cumsum(dcg, dim=1)
-        / torch.maximum(torch.cumsum(idcg, dim=1), torch.ones_like(idcg))
-    )[:, ranks - 1]
+    dcg = torch.cumsum(dcg, dim=1)
+    idcg = torch.maximum(torch.cumsum(idcg, dim=1), torch.ones_like(idcg))
+    rank_ndcg = (dcg / idcg).mean(dim=0)
+
+    return rank_ndcg[ranks - 1]
 
 
 def perplexity(
