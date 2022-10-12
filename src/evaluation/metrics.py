@@ -10,12 +10,12 @@ def ndcg(
     ranks: torch.LongTensor,
 ) -> torch.FloatTensor:
     """
-    nDCG with gain
+    Exponential nDCG, as in [RankNet - Burges et al., 2005]
 
-    - y_predict : torch.FloatTensor[batch_size, max_docs] -> relevance predictions
-    - y_true : torch.LongTensor[batch_size, max_docs] -> relevance ground truth
-    - n : torch.LongTensor[batch_size] -> number of documents in each query
-    - ranks : torch.LongTensor -> cutoff ranks for nDCG (0 for no cutoff)
+    - y_predict: torch.FloatTensor[batch_size, max_docs] -> relevance predictions
+    - y_true: torch.LongTensor[batch_size, max_docs] -> relevance ground truth
+    - n: torch.LongTensor[batch_size] -> number of documents in each query
+    - ranks: torch.LongTensor -> cutoff ranks for nDCG (0 for no cutoff)
     """
     # Mask padding in queries with less than max docs
     y_predict = mask_padding(y_predict, n, fill=-float("inf"))
