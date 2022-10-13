@@ -7,7 +7,6 @@ defaults:
   - user_model@test_user: graded-pbm
   - query_dist@train_qdist: powerlaw
   - query_dist@test_qdist: powerlaw
-  - model: cacm-minus
   - model: ubm
   - env
 
