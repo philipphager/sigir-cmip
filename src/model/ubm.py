@@ -30,7 +30,7 @@ class UBM(ClickModel):
 
         relevance = self.relevance(x)
         if click_pred:
-            ranks = torch.arange(10, device=self.device).repeat(n_batch, 1)
+            ranks = torch.arange(n_items, device=self.device).repeat(n_batch, 1)
             latest_clicked_ranks = torch.zeros(
                 n_batch, n_items, dtype=torch.long, device=self.device
             )
