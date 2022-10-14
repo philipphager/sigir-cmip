@@ -3,8 +3,8 @@ defaults:
   - data: mslr10k
   - logging_policy@train_policy: noisy-oracle
   - logging_policy@test_policy: uniform
-  - user_model@train_user: graded-pbm
-  - user_model@test_user: graded-pbm
+  - user_model@train_user: graded-trust
+  - user_model@test_user: graded-trust
   - query_dist@train_qdist: powerlaw
   - query_dist@test_qdist: powerlaw
   - model: ubm
