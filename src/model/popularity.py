@@ -139,7 +139,7 @@ class RankedTopObs(ClickModel):
         # CTR per rank
         self.rank_clicks += y_click.sum(dim=0)
         self.rank_impressions += impressions.sum(dim=0)
-        # CTR per document and rank
+        # Impressions per document and rank
         ranks = torch.arange(n_items, device=self.device).repeat(n_batch, 1)
         idx = (x * n_items + ranks).ravel()
         self.document_impressions.index_add_(0, idx, impressions.ravel())
