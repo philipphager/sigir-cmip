@@ -10,6 +10,7 @@ from ..evaluation.metrics import get_click_metrics
 class TopPop(ClickModel):
     """
     TopPop model as in [Deffayet 2022]
+    Document relevance is the number of clicks per document, no CTR prediction.
     """
 
     def __init__(
@@ -55,6 +56,8 @@ class TopPop(ClickModel):
 class TopPopObs(ClickModel):
     """
     TopPopObs model as in [Deffayet 2022]
+    Document relevance is the number of clicks times the number of impressions per
+    document, no CTR prediction.
     """
 
     def __init__(
@@ -108,6 +111,8 @@ class TopPopObs(ClickModel):
 class RankedTopObs(ClickModel):
     """
     WeightedTopObs model as in [Deffayet 2022]
+    Document relevance is the rank CTR times the number of impressions per document and
+    rank, no CTR prediction.
     """
 
     def __init__(

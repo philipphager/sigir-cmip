@@ -9,7 +9,8 @@ from ..evaluation.metrics import get_click_metrics
 
 class DCTR(ClickModel):
     """
-    dCTR model as in [Deffayet 2022] with Beta(alpha=1, beta=1) prior
+    dCTR model as in [Deffayet 2022] with Beta(alpha=1, beta=1) prior.
+    Document relevance is CTR per document.
     """
 
     def __init__(
@@ -64,7 +65,8 @@ class DCTR(ClickModel):
 
 class RankedDCTR(ClickModel):
     """
-    drCTR model as in [Deffayet 2022] with Beta(alpha=1, beta=1) prior
+    drCTR model as in [Deffayet 2022] with Beta(alpha=1, beta=1) prior.
+    Document relevance is CTR per document and rank times the inverse rank CTR.
     """
 
     def __init__(
