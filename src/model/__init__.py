@@ -5,4 +5,7 @@ from .dctr import DCTR
 from .dctr import RankedDCTR
 from .ncm import NCM
 from .pbm import PBM
+from .popularity import TopPop
+from .popularity import TopPopObs
+from .popularity import RankedTopObs
 from .ubm import UBM
