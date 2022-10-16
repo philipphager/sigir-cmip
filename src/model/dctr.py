@@ -59,11 +59,7 @@ class DCTR(ClickModel):
         true_clicks: torch.LongTensor = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         y_predict = self.clicks[x] / self.impressions[x]
-
-        if click_pred:
-            return y_predict, y_predict
-        else:
-            return y_predict
+        return y_predict, y_predict if click_pred else y_predict
 
 
 class RankedDCTR(ClickModel):
@@ -137,8 +133,4 @@ class RankedDCTR(ClickModel):
         rank_ctr = self.rank_clicks / self.rank_impressions
         y_predict = self.document_clicks[idx] / self.document_impressions[idx]
         relevance = 1 / rank_ctr * y_predict
-
-        if click_pred:
-            return y_predict, relevance
-        else:
-            return relevance
+        return y_predict, relevance if click_pred else relevance
