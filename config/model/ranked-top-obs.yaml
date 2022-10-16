@@ -1,0 +1,7 @@
+defaults:
+  - base
+
+_target_: src.model.RankedTopObs
+optimizer: adam
+learning_rate: 0.01
+n_results: "${train_simulator.rank_size}"
