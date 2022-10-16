@@ -1,7 +1,8 @@
 defaults:
   - base
 
-_target_: src.model.DCTR
+_target_: src.model.RankedDCTR
+n_results: "${train_simulator.rank_size}"
 optimizer: adam
 learning_rate: 0.01
 
