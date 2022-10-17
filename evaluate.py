@@ -7,6 +7,8 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 
+from src.util.file import hash_config
+
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"
 )
@@ -31,9 +33,7 @@ def main(config: DictConfig):
         config.datamodule, datasets={"test_clicks": test_clicks, "test_rels": train}
     )
 
-    with open(config.data.base_dir + "wandb_id.txt", "r") as f:
-        wandb_id = f.readline()
-    wandb_logger = instantiate(config.test_logger, id=wandb_id)
+    wandb_logger = instantiate(config.wandb_logger, id=hash_config(config))
 
     trainer = instantiate(config.test_trainer, logger=wandb_logger)
     model = instantiate(config.model, n_documents=n_documents)

@@ -8,6 +8,8 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.utilities import rank_zero_only
 
+from src.util.file import hash_config
+
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"
 )
@@ -46,7 +48,11 @@ def main(config: DictConfig):
         config.data.base_dir + "checkpoints/" + config.filename + ".ckpt"
     ):
         os.remove(config.data.base_dir + "checkpoints/" + config.filename + ".ckpt")
-    trainer = instantiate(config.train_val_trainer)
+
+    wandb_logger = instantiate(config.wandb_logger, id=hash_config(config))
+
+    trainer = instantiate(config.train_val_trainer, logger=wandb_logger)
+
     model = instantiate(config.model, n_documents=n_documents)
 
     trainer.fit(model, datamodule)

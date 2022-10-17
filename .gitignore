@@ -18,5 +18,5 @@ wandb
 
 #Misc
 message.txt
-*.sh
+slurm*
 tmp*
