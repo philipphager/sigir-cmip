@@ -18,5 +18,6 @@ wandb
 
 #Misc
 message.txt
+cmd.txt
 slurm*
 tmp*

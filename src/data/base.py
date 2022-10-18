@@ -52,7 +52,8 @@ class DatasetLoader(ABC):
         """
         Download directory for raw dataset .zip files
         """
-        path = self.base_dir / "download"
+        path = Path("/local/download")
+        # path = self.base_dir / "download"
         path.mkdir(parents=True, exist_ok=True)
         return path
 
