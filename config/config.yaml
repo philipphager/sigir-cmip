@@ -71,6 +71,7 @@ test_trainer:
 wandb_logger:
   _target_: pytorch_lightning.loggers.WandbLogger
   project: "cm-bias-evaluation"
+  entity: "cm-offline-metrics"
   save_dir: wandb
   id: ???
 
