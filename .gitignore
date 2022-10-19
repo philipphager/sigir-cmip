@@ -15,9 +15,11 @@
 lightning_logs
 outputs
 wandb
+multirun
 
 #Misc
 message.txt
 cmd.txt
 slurm*
 tmp*
+
