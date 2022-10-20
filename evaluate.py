@@ -34,9 +34,8 @@ def main(config: DictConfig):
         config.datamodule, datasets={"test_clicks": test_clicks, "test_rels": train}
     )
 
-    wandb_logger = instantiate(config.wandb_logger, id=hash_config(config))
-
     checkpoint_path = get_checkpoint_directory(config)
+    wandb_logger = instantiate(config.wandb_logger, id=hash_config(config))
     trainer = instantiate(config.test_trainer, logger=wandb_logger)
     model = instantiate(config.model, n_documents=n_documents)
 
