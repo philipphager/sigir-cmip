@@ -41,6 +41,8 @@ def main(config: DictConfig):
     checkpoint_path.unlink(missing_ok=True)
 
     wandb_logger = instantiate(config.wandb_logger, id=hash_config(config))
+    wandb_config = OmegaConf.to_container(config, resolve=True)
+    wandb_logger.experiment.config.update(wandb_config)
     trainer = instantiate(config.train_val_trainer, logger=wandb_logger)
     model = instantiate(config.model, n_documents=n_documents)
     trainer.fit(model, datamodule)
