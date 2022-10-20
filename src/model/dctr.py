@@ -89,6 +89,8 @@ class RankedDCTR(ClickModel):
         super().__init__(loss, optimizer, learning_rate)
         # Turn off optimization for count-based click model
         self.automatic_optimization = False
+        self.n_documents = n_documents
+        self.n_result = n_results
 
         self.document_clicks = nn.Parameter(
             torch.full((n_documents * n_results,), prior_clicks, dtype=torch.float),
@@ -140,14 +142,22 @@ class RankedDCTR(ClickModel):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         n_batch, n_items = x.shape
 
-        ranks = torch.arange(n_items, device=self.device).repeat(n_batch, 1)
-        idx = x * n_items + ranks
-
         rank_ctr = self.rank_clicks / self.rank_impressions
-        y_predict = self.document_clicks[idx] / self.document_impressions[idx]
-        relevance = 1 / rank_ctr * y_predict
+        relevance = torch.zeros_like(x, device=self.device, dtype=torch.float)
+
+        for i in range(n_items):
+            idx = x[:, i]
+            batch_idx = torch.arange(n_batch, device=self.device)
+            
+            clicks = self.document_clicks.view(self.n_documents, self.n_result)[idx]
+            impressions = self.document_impressions.view(self.n_documents, self.n_result)[idx]
+            relevance[batch_idx, i] = (rank_ctr * (clicks / impressions)).sum(1)
 
         if click_pred:
+            ranks = torch.arange(n_items, device=self.device)
+            idx = x * n_items + ranks
+            y_predict = self.document_clicks[idx] / self.document_impressions[idx]
+
             return y_predict, relevance
         else:
             return relevance
