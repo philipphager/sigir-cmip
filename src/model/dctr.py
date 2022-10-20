@@ -51,6 +51,9 @@ class DCTR(ClickModel):
         metrics["train_loss"] = loss
         self.log_dict(metrics)
 
+        # Update global_step counter for checkpointing
+        self.optimizers().step()
+
         return loss
 
     def forward(
@@ -60,7 +63,11 @@ class DCTR(ClickModel):
         true_clicks: torch.LongTensor = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         y_predict = self.clicks[x] / self.impressions[x]
-        return y_predict, y_predict if click_pred else y_predict
+
+        if click_pred:
+            return y_predict, y_predict
+        else:
+            return y_predict
 
 
 class RankedDCTR(ClickModel):
@@ -82,6 +89,7 @@ class RankedDCTR(ClickModel):
         super().__init__(loss, optimizer, learning_rate)
         # Turn off optimization for count-based click model
         self.automatic_optimization = False
+
         self.document_clicks = nn.Parameter(
             torch.full((n_documents * n_results,), prior_clicks, dtype=torch.float),
             requires_grad=False,
@@ -119,6 +127,9 @@ class RankedDCTR(ClickModel):
         metrics["train_loss"] = loss
         self.log_dict(metrics)
 
+        # Update global_step counter for checkpointing
+        self.optimizers().step()
+
         return loss
 
     def forward(
@@ -135,4 +146,8 @@ class RankedDCTR(ClickModel):
         rank_ctr = self.rank_clicks / self.rank_impressions
         y_predict = self.document_clicks[idx] / self.document_impressions[idx]
         relevance = 1 / rank_ctr * y_predict
-        return y_predict, relevance if click_pred else relevance
+
+        if click_pred:
+            return y_predict, relevance
+        else:
+            return relevance

@@ -23,6 +23,7 @@ class TopPop(ClickModel):
         super().__init__(loss, optimizer, learning_rate)
         # Turn off optimization for count-based click model
         self.automatic_optimization = False
+
         self.clicks = nn.Parameter(
             torch.zeros(n_documents, dtype=torch.float),
             requires_grad=False,
@@ -40,6 +41,9 @@ class TopPop(ClickModel):
         metrics["train_loss"] = loss
         self.log_dict(metrics)
 
+        # Update global_step counter for checkpointing
+        self.optimizers().step()
+
         return loss
 
     def forward(
@@ -50,7 +54,11 @@ class TopPop(ClickModel):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         y_predict = torch.full(x.shape, 0.5, device=x.device)
         relevance = self.clicks[x]
-        return y_predict, relevance if click_pred else relevance
+
+        if click_pred:
+            return y_predict, relevance
+        else:
+            return relevance
 
 
 class TopPopObs(ClickModel):
@@ -70,6 +78,7 @@ class TopPopObs(ClickModel):
         super().__init__(loss, optimizer, learning_rate)
         # Turn off optimization for count-based click model
         self.automatic_optimization = False
+
         self.clicks = nn.Parameter(
             torch.zeros(n_documents, dtype=torch.float),
             requires_grad=False,
@@ -95,6 +104,9 @@ class TopPopObs(ClickModel):
         metrics["train_loss"] = loss
         self.log_dict(metrics)
 
+        # Update global_step counter for checkpointing
+        self.optimizers().step()
+
         return loss
 
     def forward(
@@ -105,7 +117,11 @@ class TopPopObs(ClickModel):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         y_predict = torch.full(x.shape, 0.5, device=x.device)
         relevance = self.clicks[x] * self.impressions[x]
-        return y_predict, relevance if click_pred else relevance
+
+        if click_pred:
+            return y_predict, relevance
+        else:
+            return relevance
 
 
 class RankedTopObs(ClickModel):
@@ -126,6 +142,7 @@ class RankedTopObs(ClickModel):
         super().__init__(loss, optimizer, learning_rate)
         # Turn off optimization for count-based click model
         self.automatic_optimization = False
+
         self.document_impressions = nn.Parameter(
             torch.zeros(n_documents * n_results, dtype=torch.float),
             requires_grad=False,
@@ -156,6 +173,9 @@ class RankedTopObs(ClickModel):
         metrics["train_loss"] = loss
         self.log_dict(metrics)
 
+        # Update global_step counter for checkpointing
+        self.optimizers().step()
+
         return loss
 
     def forward(
@@ -172,4 +192,8 @@ class RankedTopObs(ClickModel):
         rank_ctr = self.rank_clicks / self.rank_impressions
         relevance = rank_ctr * self.document_impressions[idx]
         y_predict = torch.full(x.shape, 0.5, device=x.device)
-        return y_predict, relevance if click_pred else relevance
+
+        if click_pred:
+            return y_predict, relevance
+        else:
+            return relevance
