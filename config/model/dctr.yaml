@@ -1,0 +1,10 @@
+defaults:
+  - base
+
+_target_: src.model.DCTR
+optimizer: adam # ignored
+learning_rate: 0.01 # ignored
+
+# Click prediction with Beta(alpha=1, beta=1) prior for smoothing
+prior_clicks: 1
+prior_impressions: 2

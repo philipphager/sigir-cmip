@@ -1,3 +1,5 @@
+import logging
+
 import torch
 from torch.utils.data import Dataset
 
@@ -5,6 +7,8 @@ from src.data.preprocessing import RatingDataset
 from src.simulation.logging_policy import LoggingPolicy
 from src.simulation.query_dist.base import QueryDist
 from src.simulation.user_model.base import UserModel
+
+logger = logging.getLogger(__name__)
 
 
 class ClickDataset(Dataset):
@@ -48,6 +52,7 @@ class Simulator:
         query_ids, x, y, n = dataset[:]
 
         # Sample queries
+        logger.info(f"Sampling queries using {self.query_dist} distribution")
         sample_ids = self.query_dist(len(query_ids), self.n_sessions)
         query_ids = query_ids[sample_ids]
         x = x[sample_ids]
@@ -55,10 +60,12 @@ class Simulator:
         n = n[sample_ids]
 
         # Get scores from logging policy
+        logger.info(f"Pre-rank documents using logging policy")
         dataset = RatingDataset(query_ids, x, y, n)
         y_predict = self.logging_policy.predict(dataset)
 
         # Sample top-k rankings using Gumbel noise trick
+        logger.info(f"Sample top-k rankings")
         noise = torch.rand_like(y_predict.float())
         y_predict = y_predict - torch.log(-torch.log(noise))
         idx = torch.argsort(-y_predict)[:, : self.rank_size]
@@ -67,6 +74,7 @@ class Simulator:
         n = n.clamp(max=self.rank_size)
 
         # Sample clicks
+        logger.info(f"Sample clicks")
         click_probabilities = self.user_model(y_impressed)
         y_clicks = torch.bernoulli(click_probabilities)
 

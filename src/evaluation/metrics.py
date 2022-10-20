@@ -63,7 +63,7 @@ def perplexity(
     """
     # Count documents per rank
     n_batch, n_results = y_click.shape
-    mask = torch.arange(n_results).repeat((n_batch, 1))
+    mask = torch.arange(n_results, device=n.device).repeat((n_batch, 1))
     mask = mask < n.unsqueeze(1)
     docs_per_rank = mask.sum(dim=0)
 

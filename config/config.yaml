@@ -7,7 +7,7 @@ defaults:
   - user_model@test_user: graded-trust
   - query_dist@train_qdist: powerlaw
   - query_dist@test_qdist: powerlaw
-  - model: ubm
+  - model: cacm-minus
   - env
 
 train_simulator:
@@ -46,7 +46,7 @@ train_val_trainer:
   _target_: pytorch_lightning.Trainer
   max_epochs: 10
   accelerator: auto
-  strategy: ddp_find_unused_parameters_false
+  strategy: single_device # For DDP, pass 'train_val_trainer.strategy=ddp_find_unused_parameters_false' in cmd
   callbacks:
     - _target_: pytorch_lightning.callbacks.EarlyStopping
       monitor: val_loss
@@ -57,10 +57,7 @@ train_val_trainer:
       filename: ${filename}
       monitor: val_loss
       mode: min
-  logger:
-    - _target_: pytorch_lightning.loggers.WandbLogger
-      project: "cm-bias-evaluation"
-      save_dir: wandb
+  logger: ???
 
 test_trainer:
   _target_: pytorch_lightning.Trainer
@@ -70,10 +67,11 @@ test_trainer:
   logger: ???
   callbacks:
     - _target_: pytorch_lightning.callbacks.RichProgressBar
-  
-test_logger:
+
+wandb_logger:
   _target_: pytorch_lightning.loggers.WandbLogger
   project: "cm-bias-evaluation"
+  entity: "cm-offline-metrics"
   save_dir: wandb
   id: ???
 

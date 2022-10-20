@@ -5,8 +5,9 @@ import warnings
 import hydra
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
-from pytorch_lightning import Trainer, seed_everything
-from pytorch_lightning.utilities import rank_zero_only
+from pytorch_lightning import seed_everything
+
+from src.util.file import hash_config, get_checkpoint_directory
 
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"
@@ -14,12 +15,6 @@ warnings.filterwarnings(
 warnings.filterwarnings("ignore", ".*exists and is not empty*")
 
 logger = logging.getLogger(__name__)
-
-
-@rank_zero_only
-def write_wandb_id(trainer: Trainer, dirpath: str):
-    with open(dirpath + "wandb_id.txt", "w") as f:
-        f.write(trainer.logger.experiment.id)
 
 
 @hydra.main(config_path="config", config_name="config", version_base="1.2")
@@ -42,20 +37,15 @@ def main(config: DictConfig):
         config.datamodule, datasets={"train": train_clicks, "val": val_clicks}
     )
 
-    if os.path.exists(
-        config.data.base_dir + "checkpoints/" + config.filename + ".ckpt"
-    ):
-        os.remove(config.data.base_dir + "checkpoints/" + config.filename + ".ckpt")
-    trainer = instantiate(config.train_val_trainer)
+    checkpoint_path = get_checkpoint_directory(config)
+    checkpoint_path.unlink(missing_ok=True)
+
+    wandb_logger = instantiate(config.wandb_logger, id=hash_config(config))
+    wandb_config = OmegaConf.to_container(config, resolve=True)
+    wandb_logger.experiment.config.update(wandb_config)
+    trainer = instantiate(config.train_val_trainer, logger=wandb_logger)
     model = instantiate(config.model, n_documents=n_documents)
-
     trainer.fit(model, datamodule)
-
-    """logging.info(
-        f"Inferred examination probability: {model.examination(torch.arange(10, device = model.device))}"
-    )"""
-
-    write_wandb_id(trainer, config.data.base_dir)
 
 
 if __name__ == "__main__":
