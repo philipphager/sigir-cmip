@@ -5,8 +5,7 @@ import warnings
 import hydra
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
-from pytorch_lightning import Trainer, seed_everything
-from pytorch_lightning.utilities import rank_zero_only
+from pytorch_lightning import seed_everything
 
 from src.util.file import hash_config, get_checkpoint_directory
 
