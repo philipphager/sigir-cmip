@@ -1,7 +1,6 @@
 import logging
 import os
 import warnings
-from pathlib import Path
 
 import hydra
 from hydra.utils import instantiate
@@ -17,12 +16,6 @@ warnings.filterwarnings(
 warnings.filterwarnings("ignore", ".*exists and is not empty*")
 
 logger = logging.getLogger(__name__)
-
-
-@rank_zero_only
-def write_wandb_id(trainer: Trainer, dirpath: str):
-    with open(dirpath + "wandb_id.txt", "w") as f:
-        f.write(trainer.logger.experiment.id)
 
 
 @hydra.main(config_path="config", config_name="config", version_base="1.2")
@@ -52,12 +45,6 @@ def main(config: DictConfig):
     trainer = instantiate(config.train_val_trainer, logger=wandb_logger)
     model = instantiate(config.model, n_documents=n_documents)
     trainer.fit(model, datamodule)
-
-    """logging.info(
-        f"Inferred examination probability: {model.examination(torch.arange(10, device = model.device))}"
-    )"""
-
-    write_wandb_id(trainer, config.data.base_dir)
 
 
 if __name__ == "__main__":
