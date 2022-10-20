@@ -1,6 +1,7 @@
 import logging
 import os
 import warnings
+from pathlib import Path
 
 import hydra
 from hydra.utils import instantiate
@@ -8,7 +9,7 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.utilities import rank_zero_only
 
-from src.util.file import hash_config
+from src.util.file import hash_config, get_checkpoint_directory
 
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"
@@ -44,17 +45,12 @@ def main(config: DictConfig):
         config.datamodule, datasets={"train": train_clicks, "val": val_clicks}
     )
 
-    if os.path.exists(
-        config.data.base_dir + "checkpoints/" + config.filename + ".ckpt"
-    ):
-        os.remove(config.data.base_dir + "checkpoints/" + config.filename + ".ckpt")
+    checkpoint_path = get_checkpoint_directory(config)
+    checkpoint_path.unlink(missing_ok=True)
 
     wandb_logger = instantiate(config.wandb_logger, id=hash_config(config))
-
     trainer = instantiate(config.train_val_trainer, logger=wandb_logger)
-
     model = instantiate(config.model, n_documents=n_documents)
-
     trainer.fit(model, datamodule)
 
     """logging.info(

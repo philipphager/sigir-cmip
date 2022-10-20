@@ -69,8 +69,11 @@ def read_svmlight_file(path: Path, load_features: bool) -> pd.DataFrame:
 
 def hash_config(config: DictConfig, datetime: str = None):
     hash_sha256 = hashlib.sha256()
-
     hash_sha256.update(str(config).encode("utf-8"))
-    # hash_sha256.update(datetime.encode('utf-8'))
-
     return hash_sha256.hexdigest()
+
+
+def get_checkpoint_directory(config: DictConfig) -> Path:
+    checkpoint_dir = Path(config.data.base_dir) / "checkpoints"
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    return checkpoint_dir / f"{config.filename}.ckpt"
