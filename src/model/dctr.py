@@ -1,3 +1,4 @@
+import logging
 from typing import Tuple
 
 import torch
@@ -8,7 +9,10 @@ from .base import ClickModel
 from ..evaluation.metrics import get_click_metrics
 
 
-def fit_beta(y: torch.tensor, eps: float = 1e-4):
+logger = logging.getLogger(__name__)
+
+
+def fit_beta(y: torch.Tensor, eps: float = 1e-4):
     ctr = y.clip(min=eps, max=1 - eps)
     a, b, _, _ = beta.fit(ctr, method="MLE", floc=0, fscale=1)
     return a, b
@@ -33,9 +37,14 @@ class DCTR(ClickModel):
         self.automatic_optimization = False
         self.n_documents = n_documents
         # Init priors to avoid division by zero in validation before training
-        self.prior_clicks = 1
-        self.prior_impressions = 1
-        # Count clicks and impressions per document
+        self.prior_clicks = nn.Parameter(
+            torch.tensor([1.0]),
+            requires_grad=False,
+        )
+        self.prior_impressions = nn.Parameter(
+            torch.tensor([1.0]),
+            requires_grad=False,
+        )
         self.clicks = nn.Parameter(
             torch.zeros(n_documents, dtype=torch.float),
             requires_grad=False,
@@ -62,8 +71,15 @@ class DCTR(ClickModel):
 
         # Fit beta prior on CTRs, A being clicks and B non-clicks
         a, b = fit_beta(dctr)
-        self.prior_clicks = a
-        self.prior_impressions = a + b
+        self.prior_clicks = nn.Parameter(
+            torch.tensor([a]),
+            requires_grad=False,
+        )
+        self.prior_impressions = nn.Parameter(
+            torch.tensor([a + b]),
+            requires_grad=False,
+        )
+        logger.info(f"dCTR with Beta({a}, {b}), prior CTR per document: {a / (a + b)}")
 
     def training_step(self, batch, idx):
         q, x, y, y_click, n = batch
