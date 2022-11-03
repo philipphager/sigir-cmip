@@ -235,7 +235,7 @@ class RankedDCTR(ClickModel):
 
         if click_pred:
             # Fetch CTR of document at the given rank
-            ranks = ranks.reshape(-1).unsqueeze(-1)
+            ranks = ranks.reshape(-1, 1)
             y_predict = torch.gather(document_ctr, dim=1, index=ranks)
             y_predict = y_predict.reshape(n_batch, n_results)
 
