@@ -64,11 +64,11 @@ class DCTR(ClickModel):
         self.impressions += impressions.sum(dim=1)
 
         # Compute CTRs for documents that got at least one impression
-        dctr = self.clicks / self.impressions.clip(min=1)
-        dctr = dctr[self.impressions > 0]
+        ctr = self.clicks / self.impressions.clip(min=1)
+        ctr = ctr[self.impressions > 0]
 
         # Fit beta prior on CTRs, A being clicks and B non-clicks
-        a, b = fit_beta(dctr)
+        a, b = fit_beta(ctr)
         self.prior_clicks = nn.Parameter(
             torch.tensor([a]),
             requires_grad=False,
