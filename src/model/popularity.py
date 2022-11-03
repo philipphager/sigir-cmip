@@ -34,7 +34,7 @@ class TopPop(ClickModel):
 
         # Sum clicks and impressions per document over all ranks
         clicks = train.get_document_rank_clicks(self.n_documents)
-        self.clicks += clicks.sum(dim=1)
+        self.clicks += clicks.sum(dim=1).to(self.device)
 
     def training_step(self, batch, idx):
         # Update global_step counter for checkpointing
@@ -90,10 +90,10 @@ class TopPopObs(ClickModel):
 
         # Sum clicks and impressions per document over all ranks
         clicks = train.get_document_rank_clicks(self.n_documents)
-        self.clicks += clicks.sum(dim=1)
+        self.clicks += clicks.sum(dim=1).to(self.device)
 
         impressions = train.get_document_rank_impressions(self.n_documents)
-        self.impressions += impressions.sum(dim=1)
+        self.impressions += impressions.sum(dim=1).to(self.device)
 
     def training_step(self, batch, idx):
         # Update global_step counter for checkpointing
@@ -158,7 +158,9 @@ class RankedTopObs(ClickModel):
         train = self.trainer.train_dataloader.dataset.datasets
 
         clicks = train.get_document_rank_clicks(self.n_documents)
+        clicks = clicks.to(self.device)
         impressions = train.get_document_rank_impressions(self.n_documents)
+        impressions = impressions.to(self.device)
 
         self.clicks += clicks
         self.impressions += impressions
