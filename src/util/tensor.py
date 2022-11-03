@@ -1,7 +1,7 @@
 import torch
 
 
-def scatter_rank_sum(y: torch.Tensor, x: torch.Tensor, n_documents: int):
+def scatter_rank_add(y: torch.Tensor, x: torch.Tensor, n_documents: int):
     """
     Sum values in y based on the value and rank of indices in x.
     Let x be document ids:
