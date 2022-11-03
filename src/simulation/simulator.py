@@ -7,6 +7,7 @@ from src.data.preprocessing import RatingDataset
 from src.simulation.logging_policy import LoggingPolicy
 from src.simulation.query_dist.base import QueryDist
 from src.simulation.user_model.base import UserModel
+from src.util.tensor import scatter_rank_sum
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,13 @@ class ClickDataset(Dataset):
 
     def __getitem__(self, i: int):
         return self.query_ids[i], self.x[i], self.y[i], self.y_click[i], self.n[i]
+
+    def get_document_rank_clicks(self, n_documents) -> torch.Tensor:
+        return scatter_rank_sum(self.y_click, self.x, n_documents)
+
+    def get_document_rank_impressions(self, n_documents) -> torch.Tensor:
+        impressions = (self.x > 0).float()
+        return scatter_rank_sum(impressions, self.x, n_documents)
 
 
 class Simulator:
