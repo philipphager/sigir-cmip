@@ -6,8 +6,6 @@ from scipy.stats import beta
 from torch import nn
 
 from .base import ClickModel
-from ..evaluation.metrics import get_click_metrics
-
 
 logger = logging.getLogger(__name__)
 
@@ -82,19 +80,9 @@ class DCTR(ClickModel):
         logger.info(f"dCTR with Beta({a}, {b}), prior CTR per document: {a / (a + b)}")
 
     def training_step(self, batch, idx):
-        q, x, y, y_click, n = batch
-
-        y_predict_click, y_predict = self.forward(x, true_clicks=y_click)
-        loss = self.loss(y_predict_click, y_click, n)
-
-        metrics = get_click_metrics(y_predict_click, y_click, n, "train_")
-        metrics["train_loss"] = loss
-        self.log_dict(metrics)
-
         # Update global_step counter for checkpointing
         self.optimizers().step()
-
-        return loss
+        return super().training_step(batch, idx)
 
     def forward(
         self,
@@ -196,19 +184,9 @@ class RankedDCTR(ClickModel):
         )
 
     def training_step(self, batch, idx):
-        q, x, y, y_click, n = batch
-
-        y_predict_click, _ = self.forward(x, true_clicks=y_click)
-        loss = self.loss(y_predict_click, y_click, n)
-
-        metrics = get_click_metrics(y_predict_click, y_click, n, "train_")
-        metrics["train_loss"] = loss
-        self.log_dict(metrics)
-
         # Update global_step counter for checkpointing
         self.optimizers().step()
-
-        return loss
+        return super().training_step(batch, idx)
 
     def forward(
         self,
