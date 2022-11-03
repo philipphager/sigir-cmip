@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def fit_beta(y: torch.Tensor, eps: float = 1e-4):
-    ctr = y.clip(min=eps, max=1 - eps)
+    ctr = y.clip(min=eps, max=1 - eps).cpu().numpy()
     a, b, _, _ = beta.fit(ctr, method="MLE", floc=0, fscale=1)
     return a, b
 
@@ -36,11 +36,11 @@ class DCTR(ClickModel):
         self.n_documents = n_documents
         # Init priors to 1.0, avoid division by zero in validation before training
         self.prior_clicks = nn.Parameter(
-            torch.tensor([1.0]),
+            torch.zeros(1, dtype=torch.float),
             requires_grad=False,
         )
         self.prior_impressions = nn.Parameter(
-            torch.tensor([1.0]),
+            torch.zeros(1, dtype=torch.float),
             requires_grad=False,
         )
         self.clicks = nn.Parameter(
@@ -58,10 +58,10 @@ class DCTR(ClickModel):
 
         # Sum clicks and impressions per document over all ranks
         clicks = train.get_document_rank_clicks(self.n_documents)
-        self.clicks += clicks.sum(dim=1)
+        self.clicks += clicks.sum(dim=1).to(self.device)
 
         impressions = train.get_document_rank_impressions(self.n_documents)
-        self.impressions += impressions.sum(dim=1)
+        self.impressions += impressions.sum(dim=1).to(self.device)
 
         # Compute CTRs for documents that got at least one impression
         ctr = self.clicks / self.impressions.clip(min=1)
@@ -69,14 +69,8 @@ class DCTR(ClickModel):
 
         # Fit beta prior on CTRs, A being clicks and B non-clicks
         a, b = fit_beta(ctr)
-        self.prior_clicks = nn.Parameter(
-            torch.tensor([a]),
-            requires_grad=False,
-        )
-        self.prior_impressions = nn.Parameter(
-            torch.tensor([a + b]),
-            requires_grad=False,
-        )
+        self.prior_clicks += a
+        self.prior_impressions += a + b
         logger.info(f"dCTR with Beta({a}, {b}), prior CTR per document: {a / (a + b)}")
 
     def training_step(self, batch, idx):
@@ -121,13 +115,12 @@ class RankedDCTR(ClickModel):
         self.automatic_optimization = False
         self.n_documents = n_documents
         self.n_result = n_results
-
         self.prior_clicks = nn.Parameter(
-            torch.ones(n_results),
+            torch.zeros(n_results),
             requires_grad=False,
         )
         self.prior_impressions = nn.Parameter(
-            torch.ones(n_results),
+            torch.zeros(n_results),
             requires_grad=False,
         )
         self.clicks = nn.Parameter(
@@ -152,7 +145,9 @@ class RankedDCTR(ClickModel):
         train = self.trainer.train_dataloader.dataset.datasets
 
         clicks = train.get_document_rank_clicks(self.n_documents)
+        clicks = clicks.to(self.device)
         impressions = train.get_document_rank_impressions(self.n_documents)
+        impressions = impressions.to(self.device)
 
         self.clicks += clicks
         self.impressions += impressions
@@ -174,14 +169,8 @@ class RankedDCTR(ClickModel):
                 f"ranked-dCTR with Beta({a}, {b}), prior CTR at rank {i}: {a / (a + b)}"
             )
 
-        self.prior_clicks = nn.Parameter(
-            prior_clicks,
-            requires_grad=False,
-        )
-        self.prior_impressions = nn.Parameter(
-            prior_impressions,
-            requires_grad=False,
-        )
+        self.prior_clicks += prior_clicks.to(self.device)
+        self.prior_impressions += prior_impressions.to(self.device)
 
     def training_step(self, batch, idx):
         # Update global_step counter for checkpointing
