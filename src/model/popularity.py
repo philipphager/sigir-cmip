@@ -23,28 +23,24 @@ class TopPop(ClickModel):
         super().__init__(loss, optimizer, learning_rate)
         # Turn off optimization for count-based click model
         self.automatic_optimization = False
-
+        self.n_documents = n_documents
         self.clicks = nn.Parameter(
             torch.zeros(n_documents, dtype=torch.float),
             requires_grad=False,
         )
 
+    def on_train_start(self):
+        # Access full train dataset
+        train = self.trainer.train_dataloader.dataset.datasets
+
+        # Sum clicks and impressions per document over all ranks
+        clicks = train.get_document_rank_clicks(self.n_documents)
+        self.clicks += clicks.sum(dim=1)
+
     def training_step(self, batch, idx):
-        q, x, y, y_click, n = batch
-
-        self.clicks.index_add_(0, x.ravel(), y_click.ravel())
-
-        y_predict_click, y_predict = self.forward(x, true_clicks=y_click)
-        loss = self.loss(y_predict_click, y_click, n)
-
-        metrics = get_click_metrics(y_predict_click, y_click, n, "train_")
-        metrics["train_loss"] = loss
-        self.log_dict(metrics)
-
         # Update global_step counter for checkpointing
         self.optimizers().step()
-
-        return loss
+        return super().training_step(batch, idx)
 
     def forward(
         self,
