@@ -13,12 +13,17 @@ class DBN(ClickModel):
         optimizer: str,
         learning_rate: float,
         n_documents: int,
+        estimate_gamma: bool,
     ):
         super().__init__(loss, optimizer, learning_rate)
 
         self.attractiveness = nn.Sequential(nn.Embedding(n_documents, 1), nn.Sigmoid())
         self.satisfaction = nn.Sequential(nn.Embedding(n_documents, 1), nn.Sigmoid())
-        self.gamma = nn.Sequential(nn.Embedding(1, 1), nn.Sigmoid())
+
+        if estimate_gamma:
+            self.gamma = nn.Sequential(nn.Embedding(1, 1), nn.Sigmoid())
+        else:
+            self.gamma = nn.Embedding.from_pretrained(torch.ones((1, 1)))
 
     def forward(
         self,
