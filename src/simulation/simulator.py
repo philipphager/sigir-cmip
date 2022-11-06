@@ -75,7 +75,6 @@ class Simulator:
 
         # Sample clicks
         logger.info(f"Sample clicks")
-        click_probabilities = self.user_model(y_impressed)
-        y_clicks = torch.bernoulli(click_probabilities)
+        y_clicks = self.user_model(y_impressed)
 
         return ClickDataset(query_ids, x_impressed, y_impressed, y_clicks, n)

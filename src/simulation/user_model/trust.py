@@ -31,8 +31,11 @@ class BinaryTrustBias(UserModel):
         examination = get_position_bias(n_results, self.position_bias)
         tp_clicks = get_true_positive_ctr(n_results)
         fp_clicks = get_false_positive_ctr(n_results)
+        click_probabilities = examination * (
+            relevance * tp_clicks + (1 - relevance) * fp_clicks
+        )
 
-        return examination * (relevance * tp_clicks + (1 - relevance) * fp_clicks)
+        return torch.bernoulli(click_probabilities)
 
 
 class GradedTrustBias(UserModel):
@@ -57,4 +60,8 @@ class GradedTrustBias(UserModel):
         tp_clicks = get_true_positive_ctr(n_results)
         fp_clicks = get_false_positive_ctr(n_results)
 
-        return examination * (relevance * tp_clicks + (1 - relevance) * fp_clicks)
+        click_probabilities = examination * (
+            relevance * tp_clicks + (1 - relevance) * fp_clicks
+        )
+
+        return torch.bernoulli(click_probabilities)
