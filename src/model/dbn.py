@@ -26,18 +26,21 @@ class DBN(ClickModel):
         click_pred: bool = True,
         true_clicks: torch.LongTensor = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        n_batch, n_items = x.shape
-
-        attractiveness = self.attractiveness(x)
-        satisfaction = self.satisfaction(x)
-        relevance = (attractiveness * satisfaction).squeeze()
+        attractiveness = self.attractiveness(x).squeeze()
+        satisfaction = self.satisfaction(x).squeeze()
+        relevance = attractiveness * satisfaction
 
         if click_pred:
-            exam_rank = self.gamma(torch.zeros_like(x)) * (
-                1 - satisfaction * true_clicks.unsqueeze(2)
-            )
+            gamma = self.gamma(torch.zeros_like(x)).squeeze()
+            exam_rank = gamma * (1 - satisfaction * true_clicks)
+
+            # Shift examination probabilities to subsequent rank and set examination
+            # at first position to 1.
+            exam_rank = torch.roll(exam_rank, 1)
+            exam_rank[:, 0] = 1
             examination = torch.cumprod(exam_rank, dim=1)
-            y_predict = (examination * attractiveness).squeeze()
+
+            y_predict = examination * attractiveness
             return y_predict, relevance
         else:
             return relevance
