@@ -30,13 +30,14 @@ class DBN(ClickModel):
 
         attractiveness = self.attractiveness(x)
         satisfaction = self.satisfaction(x)
+        relevance = (attractiveness * satisfaction).squeeze()
+
         if click_pred:
             exam_rank = self.gamma(torch.zeros_like(x)) * (
                 1 - satisfaction * true_clicks.unsqueeze(2)
             )
             examination = torch.cumprod(exam_rank, dim=1)
-
-            y_predict = examination * attractiveness
-            return y_predict.squeeze(), (attractiveness * satisfaction).squeeze()
+            y_predict = (examination * attractiveness).squeeze()
+            return y_predict, relevance
         else:
-            return (attractiveness * satisfaction).squeeze()
+            return relevance
