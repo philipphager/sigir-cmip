@@ -18,7 +18,7 @@ class BinaryPBM(UserModel):
 
         relevance = get_binary_relevance(y, self.click_noise)
         examination = get_position_bias(n_results, self.position_bias)
-        return relevance * examination
+        return torch.bernoulli(relevance * examination)
 
 
 class GradedPBM(UserModel):
@@ -31,4 +31,4 @@ class GradedPBM(UserModel):
 
         relevance = get_graded_relevance(y, self.click_noise)
         examination = get_position_bias(n_results, self.position_bias)
-        return relevance * examination
+        return torch.bernoulli(relevance * examination)

@@ -4,4 +4,4 @@ defaults:
 _target_: src.model.DBN
 optimizer: adam
 learning_rate: 0.01
-estimate_gamma: True
+estimate_gamma: False

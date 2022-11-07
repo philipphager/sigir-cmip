@@ -1,0 +1,4 @@
+_target_: src.simulation.user_model.GradedDBN
+attractiveness_noise: 0.1
+click_noise: 0.1
+gamma: 0.9
