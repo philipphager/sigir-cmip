@@ -7,6 +7,7 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 
+from src.util.cache import cache
 from src.util.file import hash_config, get_checkpoint_directory
 
 warnings.filterwarnings(
@@ -23,18 +24,29 @@ def main(config: DictConfig):
     logger.info("Working directory : {}".format(os.getcwd()))
     seed_everything(config.random_state)
 
-    dataset = instantiate(config.data)
-    train = dataset.load("train")
-    n_documents = train.n.sum() + 1
+    @cache(config.data.base_dir, "dataset", [config.data])
+    def load_dataset(config):
+        dataset = instantiate(config.data)
+        return dataset.load("train")
 
-    train_simulator = instantiate(config.train_simulator)
-    train_clicks = train_simulator(train)
+    @cache(config.data.base_dir, "train_clicks", [config.data, config.train_simulator])
+    def simulate_train(config, dataset):
+        simulator = instantiate(config.train_simulator)
+        return simulator(dataset)
 
-    val_simulator = instantiate(config.val_simulator)
-    val_clicks = val_simulator(train)
+    @cache(config.data.base_dir, "val_clicks", [config.data, config.val_simulator])
+    def simulate_val(config, dataset):
+        simulator = instantiate(config.val_simulator)
+        return simulator(dataset)
 
+    dataset = load_dataset(config)
+    n_documents = dataset.n.sum() + 1
+
+    train_clicks = simulate_train(config, dataset)
+    val_clicks = simulate_val(config, dataset)
     datamodule = instantiate(
-        config.datamodule, datasets={"train": train_clicks, "val": val_clicks}
+        config.datamodule,
+        datasets={"train": train_clicks, "val": val_clicks},
     )
 
     checkpoint_path = get_checkpoint_directory(config)
@@ -43,6 +55,7 @@ def main(config: DictConfig):
     wandb_logger = instantiate(config.wandb_logger, id=hash_config(config))
     wandb_config = OmegaConf.to_container(config, resolve=True)
     wandb_logger.experiment.config.update(wandb_config)
+
     trainer = instantiate(config.train_val_trainer, logger=wandb_logger)
     model = instantiate(config.model, n_documents=n_documents)
     trainer.fit(model, datamodule)
