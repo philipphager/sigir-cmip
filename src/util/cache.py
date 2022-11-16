@@ -1,7 +1,6 @@
 import functools
 import hashlib
 import logging
-import os
 import pickle
 from pathlib import Path
 from typing import Callable, Union, Any, List
@@ -11,7 +10,11 @@ from omegaconf import DictConfig, OmegaConf
 logger = logging.getLogger(__name__)
 
 
-def cache(directory: Union[str, Path], configs: List[DictConfig]) -> Any:
+def cache(
+        base_directory: Union[str, Path],
+        directory: Union[str, Path],
+        configs: List[DictConfig],
+) -> Any:
     """
     Decorator for storing the output of a function to disk using a list of Hydra configs
     as hash keys. Thus, an annotated function is only executed when the config changes.
@@ -23,6 +26,7 @@ def cache(directory: Union[str, Path], configs: List[DictConfig]) -> Any:
 
     export CACHE_DIRECTORY = ~/.ltr_datasets/
 
+    :param base_directory: Main cache directory.
     :param directory: Subdirectory to use inside the main cache directory.
     :param configs: Hydra DictConfigs to use as hash key for the wrapped function.
     :return: Original function output as returned by pickle.
@@ -39,8 +43,7 @@ def cache(directory: Union[str, Path], configs: List[DictConfig]) -> Any:
         return key.hexdigest()
 
     def wrapper_factory(func: Callable):
-        base_dir = os.getenv("CACHE_DIRECTORY", "~/.ltr_datasets/")
-        base_dir = (Path(base_dir) / Path(directory)).expanduser()
+        base_dir = (Path(base_directory) / Path(directory)).expanduser()
         base_dir.mkdir(parents=True, exist_ok=True)
         key = hash_configs(configs)
 
