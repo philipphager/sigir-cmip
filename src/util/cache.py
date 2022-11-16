@@ -11,20 +11,15 @@ logger = logging.getLogger(__name__)
 
 
 def cache(
-        base_directory: Union[str, Path],
-        directory: Union[str, Path],
-        configs: List[DictConfig],
+    base_directory: Union[str, Path],
+    directory: Union[str, Path],
+    configs: List[DictConfig],
 ) -> Any:
     """
     Decorator for storing the output of a function to disk using a list of Hydra configs
     as hash keys. Thus, an annotated function is only executed when the config changes.
     Hydra configs are used for hashing instead of function arguments to avoid adding
     hashing to custom datasets, tensors, etc.
-
-    The base directory of the cache is specified by setting the ENV variable,
-    by default:
-
-    export CACHE_DIRECTORY = ~/.ltr_datasets/
 
     :param base_directory: Main cache directory.
     :param directory: Subdirectory to use inside the main cache directory.
