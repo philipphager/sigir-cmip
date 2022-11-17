@@ -1,3 +1,5 @@
+from typing import List
+
 import torch
 
 from src.model.loss import mask_padding
@@ -87,56 +89,67 @@ def get_agreement_ratio(
     y_logging_policy: torch.FloatTensor,
     y_true: torch.LongTensor,
     n: torch.LongTensor,
-    ranks: torch.LongTensor,
     disjoint_pairs: bool,
 ) -> float:
-    if disjoint_pairs:
-        randperm = [torch.randperm(k) for k in n]
-        pairs = [
-            torch.stack(
-                [randperm[i][: k // 2], randperm[i][k // 2 : 2 * k // 2]], dim=0
-            )
-            for i, k in enumerate(n)
-        ]  # List[LongTensor(2, n_docs // 2)](n_queries)
-    else:
-        pairs = [
-            torch.tril_indices(k, k, -1) for k in n
-        ]  # List[LongTensor(2, n_docs * (n_docs-1) / 2)](n_queries)
+    pairs = _get_disjoint_pairs(n) if disjoint_pairs else _get_all_pairs(n)
 
-    # Keep only non-equal pairs:
+    # Drop equal pairs of equal relevance
     pairs = [
         pairs[i][:, y_true[i, pairs_q[0]] != y_true[i, pairs_q[1]]]
         for i, pairs_q in enumerate(pairs)
     ]
-    # n_pairs = sum([len(pairs_q[0]) for pairs_q in pairs])
 
-    true_pref = torch.cat(
-        [
-            (y_true[i, pairs_q[0]] > y_true[i, pairs_q[1]])
-            for i, pairs_q in enumerate(pairs)
-        ],
-        dim=0,
-    )
-    cm_pref = torch.cat(
-        [
-            (y_predict[i, pairs_q[0]] > y_predict[i, pairs_q[1]])
-            for i, pairs_q in enumerate(pairs)
-        ],
-        dim=0,
-    )
-    lp_pref = torch.cat(
-        [
-            (y_logging_policy[i, pairs_q[0]] > y_logging_policy[i, pairs_q[1]])
-            for i, pairs_q in enumerate(pairs)
-        ],
-        dim=0,
-    )
+    true_pref = _get_preference(y_true, pairs)
+    lp_pref = _get_preference(y_logging_policy, pairs)
+    cm_pref = _get_preference(y_predict, pairs)
 
     lp_wrong = torch.logical_xor(true_pref, lp_pref)
     cm_wrong = torch.logical_xor(true_pref, cm_pref)
     agreement_ratio = torch.logical_and(lp_wrong, cm_wrong).sum() / lp_wrong.sum()
 
-    return agreement_ratio  # Problem because not same amount of pairs in every batch
+    return agreement_ratio
+
+
+def _get_disjoint_pairs(n: torch.LongTensor) -> List[torch.Tensor]:
+    """
+    Get indices for all disjoint pairs of documents per query. I.e. each document is
+    only part of one pair per query.
+    :param n: Tensor containing number of documents per query
+    :return: List[LongTensor(2, n_docs // 2)](n_queries)
+    """
+    randperm = [torch.randperm(k) for k in n]
+
+    return [
+        torch.stack([randperm[i][: k // 2], randperm[i][k // 2 : 2 * k // 2]], dim=0)
+        for i, k in enumerate(n.tolist())
+    ]
+
+
+def _get_all_pairs(n: torch.LongTensor) -> List[torch.LongTensor]:
+    """
+    Get indices for all pairs of documents per query.
+    :param n: Tensor containing number of documents per query
+    :return: List[LongTensor(2, n_docs * (n_docs-1) / 2)](n_queries)
+    """
+    return [torch.tril_indices(k, k, -1) for k in n]
+
+
+def _get_preference(y: torch.Tensor, pairs: List[torch.LongTensor]) -> torch.BoolTensor:
+    """
+    Returns if the first document in a pair of documents is preferred over the second
+    item.
+    :param y: Tensor of scores per document per query as predicted by policy
+    :param pairs: List of document pairs per query
+    :return: Boolean tensor of single dimension containing all pair preferences
+    """
+
+    return torch.cat(
+        [
+            (y[i, query_pairs[0]] > y[i, query_pairs[1]])
+            for i, query_pairs in enumerate(pairs)
+        ],
+        dim=0,
+    )
 
 
 def get_click_metrics(
