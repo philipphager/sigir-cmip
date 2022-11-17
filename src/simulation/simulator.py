@@ -70,6 +70,10 @@ class Simulator:
         # Get scores from logging policy
         logger.info(f"Pre-rank documents using logging policy")
         dataset = RatingDataset(query_ids, x, y, n)
+
+        # Fixme: Logging policy should be probably trained outside the simulator.
+        # Also check if we should train on a partial dataset not the full one.
+        self.logging_policy.fit(dataset)
         y_predict = self.logging_policy.predict(dataset)
 
         # Sample top-k rankings using Gumbel noise trick
