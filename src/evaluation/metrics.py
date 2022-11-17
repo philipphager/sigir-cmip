@@ -105,9 +105,8 @@ def get_agreement_ratio(
 
     lp_wrong = torch.logical_xor(true_pref, lp_pref)
     cm_wrong = torch.logical_xor(true_pref, cm_pref)
-    agreement_ratio = torch.logical_and(lp_wrong, cm_wrong).sum() / lp_wrong.sum()
 
-    return agreement_ratio
+    return torch.logical_and(lp_wrong, cm_wrong).sum() / lp_wrong.sum().clip(min=1)
 
 
 def _get_disjoint_pairs(n: torch.LongTensor) -> List[torch.Tensor]:
