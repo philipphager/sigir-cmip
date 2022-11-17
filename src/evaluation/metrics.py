@@ -82,6 +82,63 @@ def perplexity(
     return ppl[ranks]
 
 
+def get_agreement_ratio(
+    y_predict: torch.FloatTensor,
+    y_logging_policy: torch.FloatTensor,
+    y_true: torch.LongTensor,
+    n: torch.LongTensor,
+    ranks: torch.LongTensor,
+    disjoint_pairs: bool,
+) -> float:
+    if disjoint_pairs:
+        randperm = [torch.randperm(k) for k in n]
+        pairs = [
+            torch.stack(
+                [randperm[i][: k // 2], randperm[i][k // 2 : 2 * k // 2]], dim=0
+            )
+            for i, k in enumerate(n)
+        ]  # List[LongTensor(2, n_docs // 2)](n_queries)
+    else:
+        pairs = [
+            torch.tril_indices(k, k, -1) for k in n
+        ]  # List[LongTensor(2, n_docs * (n_docs-1) / 2)](n_queries)
+
+    # Keep only non-equal pairs:
+    pairs = [
+        pairs[i][:, y_true[i, pairs_q[0]] != y_true[i, pairs_q[1]]]
+        for i, pairs_q in enumerate(pairs)
+    ]
+    # n_pairs = sum([len(pairs_q[0]) for pairs_q in pairs])
+
+    true_pref = torch.cat(
+        [
+            (y_true[i, pairs_q[0]] > y_true[i, pairs_q[1]])
+            for i, pairs_q in enumerate(pairs)
+        ],
+        dim=0,
+    )
+    cm_pref = torch.cat(
+        [
+            (y_predict[i, pairs_q[0]] > y_predict[i, pairs_q[1]])
+            for i, pairs_q in enumerate(pairs)
+        ],
+        dim=0,
+    )
+    lp_pref = torch.cat(
+        [
+            (y_logging_policy[i, pairs_q[0]] > y_logging_policy[i, pairs_q[1]])
+            for i, pairs_q in enumerate(pairs)
+        ],
+        dim=0,
+    )
+
+    lp_wrong = torch.logical_xor(true_pref, lp_pref)
+    cm_wrong = torch.logical_xor(true_pref, cm_pref)
+    agreement_ratio = torch.logical_and(lp_wrong, cm_wrong).sum() / lp_wrong.sum()
+
+    return agreement_ratio  # Problem because not same amount of pairs in every batch
+
+
 def get_click_metrics(
     y_predict_click: torch.FloatTensor,
     y_click: torch.FloatTensor,
