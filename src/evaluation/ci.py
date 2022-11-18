@@ -1,8 +1,9 @@
+from typing import Any
+
 import torch
-from lightgbm import LGBMClassifier
 
 
-class PointwiseClassifierCI:
+class PointwiseClassifierCITest:
     """
     Classifier Conditional Independence Test (CCIT) from [Sen et al. 2017]
 
@@ -12,7 +13,15 @@ class PointwiseClassifierCI:
     data. If this can be done better than chance, the original data is not independent.
     """
 
-    def __call__(self, y_predict, y_logging_policy, y_true):
+    def __init__(self, classifier: Any):
+        self.classifier = classifier
+
+    def __call__(
+        self,
+        y_predict: torch.Tensor,
+        y_logging_policy: torch.Tensor,
+        y_true: torch.LongTensor,
+    ):
         dataset = self.hstack(y_predict, y_logging_policy, y_true)
         split1, split2, split3 = self.random_split(dataset, splits=3)
         split2 = self.nearest_neighbor_bootstrap(split2, split3)
@@ -22,7 +31,7 @@ class PointwiseClassifierCI:
         dataset = torch.vstack([split1, split2])
 
         train, test = self.random_split(dataset, splits=2)
-        classifier = self.train_classifier(train)
+        classifier = self.train_classifier(self.classifier, train)
         loss = self.evaluate(classifier, test)
 
         threshold = self.get_threshold(len(test))
@@ -32,7 +41,9 @@ class PointwiseClassifierCI:
 
     @staticmethod
     def hstack(
-        y_predict: torch.Tensor, y_logging_policy: torch.Tensor, y_true: torch.Tensor
+        y_predict: torch.Tensor,
+        y_logging_policy: torch.Tensor,
+        y_true: torch.LongTensor,
     ):
         """
         Flatten all tensors to 1d and stack them into columns of a matrix of size:
@@ -57,7 +68,7 @@ class PointwiseClassifierCI:
         return torch.chunk(x[idx], splits)
 
     @staticmethod
-    def nearest_neighbor_bootstrap(split1, split2):
+    def nearest_neighbor_bootstrap(split1: torch.Tensor, split2: torch.Tensor):
         """
         This method uses two dataset splits containing observations (x, y, z) to
         generate a third dataset in which x, y are independent conditioned on z.
@@ -86,7 +97,7 @@ class PointwiseClassifierCI:
         return split1
 
     @staticmethod
-    def add_label(x, label: int):
+    def add_label(x: torch.Tensor, label: int):
         """
         Adds a new column to the dataset containing the given label
         """
@@ -94,17 +105,15 @@ class PointwiseClassifierCI:
         return torch.hstack([x, labels])
 
     @staticmethod
-    def train_classifier(train):
+    def train_classifier(model: Any, train: torch.Tensor):
         x = train[:, :3].numpy()
         y = train[:, 3].numpy()
-
-        model = LGBMClassifier()
         model.fit(x, y)
 
         return model
 
     @staticmethod
-    def evaluate(model, test):
+    def evaluate(model: Any, test: torch.Tensor):
         x = test[:, :3]
         y = test[:, 3]
 

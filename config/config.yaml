@@ -8,6 +8,7 @@ defaults:
   - query_dist@train_qdist: powerlaw
   - query_dist@test_qdist: powerlaw
   - model: cacm-minus
+  - ci: pointwise-ccit
   - env
 
 train_simulator:
