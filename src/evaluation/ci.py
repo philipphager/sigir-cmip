@@ -59,7 +59,7 @@ class PointwiseClassifierCI:
     @staticmethod
     def nearest_neighbor_bootstrap(split1, split2):
         """
-        This method uses two dataset splits containing observations ([x, y, z]) to
+        This method uses two dataset splits containing observations (x, y, z) to
         generate a third dataset in which x, y are independent conditioned on z.
 
         This is done by iterating over the first split u1, and finding a nearest
