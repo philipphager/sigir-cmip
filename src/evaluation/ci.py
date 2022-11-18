@@ -38,7 +38,7 @@ class PointwiseClassifierCI:
         Flatten all tensors to 1d and stack them into columns of a matrix of size:
         (n_results * n_queries) x 3
         Each row contains thus one observation of:
-        [y_predict, y_logging_policy, y_true]
+        (y_predict, y_logging_policy, y_true) or (x, y, z)
         """
         return torch.column_stack(
             [
