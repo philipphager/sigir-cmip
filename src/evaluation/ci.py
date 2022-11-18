@@ -71,7 +71,7 @@ class PointwiseClassifierCI:
 
         :param split1: A tensor containing a third of the original dataset
         :param split2: A tensor containing another third of the original dataset
-        :return: The tensor u1 with the y entries replaced with samples from u2
+        :return: Split1 with the y entries replaced with samples from split2
         """
         z1 = split1[:, 2]
         z2 = split2[:, 2]
