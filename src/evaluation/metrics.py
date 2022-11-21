@@ -84,7 +84,7 @@ def perplexity(
     return ppl[ranks]
 
 
-def get_agreement_ratio(
+def agreement_ratio(
     y_predict: torch.FloatTensor,
     y_logging_policy: torch.FloatTensor,
     y_true: torch.LongTensor,
@@ -93,7 +93,7 @@ def get_agreement_ratio(
 ) -> float:
     pairs = _get_disjoint_pairs(n) if disjoint_pairs else _get_all_pairs(n)
 
-    # Drop equal pairs of equal relevance
+    # Drop pairs of equal relevance
     pairs = [
         pairs[i][:, y_true[i, pairs_q[0]] != y_true[i, pairs_q[1]]]
         for i, pairs_q in enumerate(pairs)
@@ -169,12 +169,19 @@ def get_click_metrics(
 def get_relevance_metrics(
     y_predict: torch.FloatTensor,
     y_true: torch.LongTensor,
+    y_lp: torch.FloatTensor,
     n: torch.LongTensor,
     prefix: str,
 ):
     ranks = torch.tensor([1, 5, 10, 0], device=y_true.device)
     batch_ndcg = ndcg(y_predict, y_true, n, ranks).detach()
-
-    return {
+    relevance_metrics = {
         f"{prefix}ndcg{k}": batch_ndcg[i] for i, k in enumerate(["@1", "@5", "@10", ""])
     }
+    if y_lp is not None:
+        batch_agreement_ratio = agreement_ratio(
+            y_predict, y_lp, y_true, n, disjoint_pairs=False
+        )
+        relevance_metrics |= {f"{prefix}agreement_ratio": batch_agreement_ratio}
+
+    return relevance_metrics
