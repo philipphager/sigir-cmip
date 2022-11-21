@@ -29,8 +29,9 @@ class DCTR(ClickModel):
         optimizer: str,
         learning_rate: float,
         n_documents: int,
+        lp_scores: torch.FloatTensor = None,
     ):
-        super().__init__(loss, optimizer, learning_rate)
+        super().__init__(loss, optimizer, learning_rate, lp_scores)
         # Turn off optimization for count-based click model
         self.automatic_optimization = False
         self.n_documents = n_documents
@@ -109,8 +110,9 @@ class RankedDCTR(ClickModel):
         learning_rate: float,
         n_documents: int,
         n_results: int,
+        lp_scores: torch.FloatTensor = None,
     ):
-        super().__init__(loss, optimizer, learning_rate)
+        super().__init__(loss, optimizer, learning_rate, lp_scores)
         # Turn off optimization for count-based click model
         self.automatic_optimization = False
         self.n_documents = n_documents

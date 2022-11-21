@@ -26,7 +26,6 @@ val_simulator:
 
 test_simulator:
   _target_: src.simulation.Simulator
-  logging_policy: ${test_policy}
   user_model: ${test_user}
   query_dist: ${test_qdist}
   n_sessions: 1_000_000

@@ -24,24 +24,36 @@ def main(config: DictConfig):
     logger.info("Working directory : {}".format(os.getcwd()))
     seed_everything(config.random_state)
 
-    @cache(config.data.base_dir, "dataset", [config.data])
+    @cache(config.data.base_dir, "dataset", [config.data, config.random_state])
     def load_dataset(config):
         dataset = instantiate(config.data)
         return dataset.load("train")
 
     # Check if we should train on a partial dataset not the full one.
-    @cache(config.data.base_dir, "policies", [config.data, config.train_policy])
+    @cache(
+        config.data.base_dir,
+        "policies",
+        [config.data, config.train_policy, config.random_state],
+    )
     def load_policy(config, dataset):
         policy = instantiate(config.train_policy)
         policy.fit(dataset)
         return policy.predict(dataset)
 
-    @cache(config.data.base_dir, "train_clicks", [config.data, config.train_simulator])
+    @cache(
+        config.data.base_dir,
+        "train_clicks",
+        [config.data, config.train_simulator, config.random_state],
+    )
     def simulate_train(config, dataset, policy):
         simulator = instantiate(config.train_simulator)
         return simulator(dataset, policy)
 
-    @cache(config.data.base_dir, "val_clicks", [config.data, config.val_simulator])
+    @cache(
+        config.data.base_dir,
+        "val_clicks",
+        [config.data, config.val_simulator, config.random_state],
+    )
     def simulate_val(config, dataset, policy):
         simulator = instantiate(config.val_simulator)
         return simulator(dataset, policy)

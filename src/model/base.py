@@ -79,8 +79,9 @@ class ClickModel(pl.LightningModule):
         else:
             # Rating dataset
             query_ids, x, y, n = batch
+            print(query_ids)
             y_predict = self.forward(x, click_pred=False)
-            y_lp = self.lp_scores[query_ids]
+            y_lp = self.lp_scores[query_ids].to(self.device)
             metrics = get_relevance_metrics(y_predict, y, y_lp, n, "test_rels_")
 
         # self.log_dict(metrics)
