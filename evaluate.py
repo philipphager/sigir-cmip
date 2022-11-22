@@ -42,7 +42,7 @@ def main(config: DictConfig):
     @cache(
         config.data.base_dir,
         "test_clicks",
-        [config.data, config.test_simulator, config.random_state],
+        [config.data, config.test_policy, config.test_simulator, config.random_state],
     )
     def simulate_test(config, dataset, policy):
         simulator = instantiate(config.test_simulator)

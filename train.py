@@ -43,7 +43,7 @@ def main(config: DictConfig):
     @cache(
         config.data.base_dir,
         "train_clicks",
-        [config.data, config.train_simulator, config.random_state],
+        [config.data, config.train_policy, config.train_simulator, config.random_state],
     )
     def simulate_train(config, dataset, policy):
         simulator = instantiate(config.train_simulator)
@@ -52,7 +52,7 @@ def main(config: DictConfig):
     @cache(
         config.data.base_dir,
         "val_clicks",
-        [config.data, config.val_simulator, config.random_state],
+        [config.data, config.train_policy, config.val_simulator, config.random_state],
     )
     def simulate_val(config, dataset, policy):
         simulator = instantiate(config.val_simulator)
