@@ -76,16 +76,37 @@ class ClickModel(pl.LightningModule):
 
             metrics = get_click_metrics(y_predict_click, y_click, n, "test_clicks_")
             metrics["test_loss"] = loss
+            self.log_dict(metrics)
         else:
             # Rating dataset
             query_ids, x, y, n = batch
-            print(query_ids)
             y_predict = self.forward(x, click_pred=False)
-            y_lp = self.lp_scores[query_ids].to(self.device)
+            y_lp = self.lp_scores[idx * len(query_ids) : (idx + 1) * len(query_ids)].to(
+                self.device
+            )
             metrics = get_relevance_metrics(y_predict, y, y_lp, n, "test_rels_")
+            self.log_dict(
+                {
+                    key: val
+                    for key, val in metrics.items()
+                    if key not in ["test_rels_agreement_ratio", "n_pairs"]
+                }
+            )
 
-        # self.log_dict(metrics)
         return metrics
 
     def test_epoch_end(self, outputs):
-        print(outputs)
+        # Weighted sum to account for different number of pairs in different batches
+        agreement_ratios = torch.stack(
+            [metrics["test_rels_agreement_ratio"] for metrics in outputs[1]]
+        )
+        n_pairs = torch.stack(
+            [
+                torch.tensor(metrics["n_pairs"], device=self.device)
+                for metrics in outputs[1]
+            ]
+        )
+        test_agreement_ratio = torch.sum(agreement_ratios * n_pairs) / torch.sum(
+            n_pairs
+        )
+        self.log("test_rels_agreement_ratio", test_agreement_ratio)

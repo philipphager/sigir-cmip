@@ -3,4 +3,4 @@ defaults:
 
 _target_: src.model.TopPop
 optimizer: adam # ignored
-learning_rate: 0.01 # ignored
+learning_rate: 0.001 # ignored

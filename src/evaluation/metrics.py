@@ -106,7 +106,12 @@ def agreement_ratio(
     lp_wrong = torch.logical_xor(true_pref, lp_pref)
     cm_wrong = torch.logical_xor(true_pref, cm_pref)
 
-    return torch.logical_and(lp_wrong, cm_wrong).sum() / lp_wrong.sum().clip(min=1)
+    agreement_ratio = (
+        torch.logical_and(lp_wrong, cm_wrong).sum()
+        / torch.logical_or(lp_wrong, cm_wrong).sum()
+    )
+
+    return agreement_ratio, torch.cat(pairs, dim=1).shape[1]
 
 
 def _get_disjoint_pairs(n: torch.LongTensor) -> List[torch.Tensor]:
@@ -179,9 +184,12 @@ def get_relevance_metrics(
         f"{prefix}ndcg{k}": batch_ndcg[i] for i, k in enumerate(["@1", "@5", "@10", ""])
     }
     if y_lp is not None:
-        batch_agreement_ratio = agreement_ratio(
+        batch_agreement_ratio, batch_n_pairs = agreement_ratio(
             y_predict, y_lp, y_true, n, disjoint_pairs=False
         )
-        relevance_metrics |= {f"{prefix}agreement_ratio": batch_agreement_ratio}
+        relevance_metrics |= {
+            f"{prefix}agreement_ratio": batch_agreement_ratio,
+            "n_pairs": batch_n_pairs,
+        }
 
     return relevance_metrics
