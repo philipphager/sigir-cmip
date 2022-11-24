@@ -8,7 +8,7 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 
 from src.util.cache import cache
-from src.util.file import hash_config, get_checkpoint_directory
+from src.util.file import get_checkpoint_directory, hash_config
 
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"
@@ -24,26 +24,46 @@ def main(config: DictConfig):
     logger.info("Working directory : {}".format(os.getcwd()))
     seed_everything(config.random_state)
 
-    @cache(config.data.base_dir, "dataset", [config.data])
+    @cache(config.data.base_dir, "dataset", [config.data, config.random_state])
     def load_dataset(config):
         dataset = instantiate(config.data)
         return dataset.load("train")
 
-    @cache(config.data.base_dir, "train_clicks", [config.data, config.train_simulator])
-    def simulate_train(config, dataset):
-        simulator = instantiate(config.train_simulator)
-        return simulator(dataset)
+    # Check if we should train on a partial dataset not the full one.
+    @cache(
+        config.data.base_dir,
+        "policies",
+        [config.data, config.train_policy, config.random_state],
+    )
+    def load_policy(config, dataset):
+        policy = instantiate(config.train_policy)
+        policy.fit(dataset)
+        return policy.predict(dataset)
 
-    @cache(config.data.base_dir, "val_clicks", [config.data, config.val_simulator])
-    def simulate_val(config, dataset):
+    @cache(
+        config.data.base_dir,
+        "train_clicks",
+        [config.data, config.train_policy, config.train_simulator, config.random_state],
+    )
+    def simulate_train(config, dataset, policy):
+        simulator = instantiate(config.train_simulator)
+        return simulator(dataset, policy)
+
+    @cache(
+        config.data.base_dir,
+        "val_clicks",
+        [config.data, config.train_policy, config.val_simulator, config.random_state],
+    )
+    def simulate_val(config, dataset, policy):
         simulator = instantiate(config.val_simulator)
-        return simulator(dataset)
+        return simulator(dataset, policy)
 
     dataset = load_dataset(config)
-    n_documents = dataset.n.sum() + 1
+    policy = load_policy(config, dataset)
 
-    train_clicks = simulate_train(config, dataset)
-    val_clicks = simulate_val(config, dataset)
+    n_documents = dataset.n.sum() + 1
+    train_clicks = simulate_train(config, dataset, policy)
+    val_clicks = simulate_val(config, dataset, policy)
     datamodule = instantiate(
         config.datamodule,
         datasets={"train": train_clicks, "val": val_clicks},

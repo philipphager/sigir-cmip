@@ -22,4 +22,5 @@ message.txt
 cmd.txt
 slurm*
 tmp*
+config/broom
 

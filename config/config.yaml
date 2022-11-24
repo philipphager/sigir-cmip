@@ -12,7 +12,6 @@ defaults:
 
 train_simulator:
   _target_: src.simulation.Simulator
-  logging_policy: ${train_policy}
   user_model: ${train_user}
   query_dist: ${train_qdist}
   n_sessions: 5_000_000
@@ -20,7 +19,6 @@ train_simulator:
 
 val_simulator:
   _target_: src.simulation.Simulator
-  logging_policy: ${train_policy}
   user_model: ${train_user}
   query_dist: ${train_qdist}
   n_sessions: 1_000_000
@@ -28,7 +26,6 @@ val_simulator:
 
 test_simulator:
   _target_: src.simulation.Simulator
-  logging_policy: ${test_policy}
   user_model: ${test_user}
   query_dist: ${test_qdist}
   n_sessions: 1_000_000
@@ -46,7 +43,8 @@ train_val_trainer:
   _target_: pytorch_lightning.Trainer
   max_epochs: 10
   accelerator: auto
-  strategy: single_device # For DDP, pass 'train_val_trainer.strategy=ddp_find_unused_parameters_false' in cmd
+  devices: 1
+  #strategy: single_device # For DDP, pass 'train_val_trainer.strategy=ddp_find_unused_parameters_false' in cmd
   callbacks:
     - _target_: pytorch_lightning.callbacks.EarlyStopping
       monitor: val_loss

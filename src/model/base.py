@@ -9,11 +9,18 @@ from src.evaluation.metrics import get_click_metrics, get_relevance_metrics
 
 
 class ClickModel(pl.LightningModule):
-    def __init__(self, loss: nn.Module, optimizer: str, learning_rate: float):
+    def __init__(
+        self,
+        loss: nn.Module,
+        optimizer: str,
+        learning_rate: float,
+        lp_scores: torch.FloatTensor = None,
+    ):
         super().__init__()
         self.loss = loss
         self.optimizer = optimizer
         self.learning_rate = learning_rate
+        self.lp_scores = lp_scores
 
     def configure_optimizers(self):
         if self.optimizer == "adam":
@@ -53,7 +60,7 @@ class ClickModel(pl.LightningModule):
         loss = self.loss(y_predict_click, y_click, n)
 
         click_metrics = get_click_metrics(y_predict_click, y_click, n, "val_")
-        relevance_metrics = get_relevance_metrics(y_predict, y, n, "val_")
+        relevance_metrics = get_relevance_metrics(y_predict, y, None, n, "val_")
         metrics = click_metrics | relevance_metrics
         metrics["val_loss"] = loss
         self.log_dict(metrics)
@@ -69,11 +76,37 @@ class ClickModel(pl.LightningModule):
 
             metrics = get_click_metrics(y_predict_click, y_click, n, "test_clicks_")
             metrics["test_loss"] = loss
+            self.log_dict(metrics)
         else:
             # Rating dataset
             query_ids, x, y, n = batch
             y_predict = self.forward(x, click_pred=False)
-            metrics = get_relevance_metrics(y_predict, y, n, "test_rels_")
+            y_lp = self.lp_scores[idx * len(query_ids) : (idx + 1) * len(query_ids)].to(
+                self.device
+            )
+            metrics = get_relevance_metrics(y_predict, y, y_lp, n, "test_rels_")
+            self.log_dict(
+                {
+                    key: val
+                    for key, val in metrics.items()
+                    if key not in ["test_rels_agreement_ratio", "n_pairs"]
+                }
+            )
 
-        self.log_dict(metrics)
         return metrics
+
+    def test_epoch_end(self, outputs):
+        # Weighted sum to account for different number of pairs in different batches
+        agreement_ratios = torch.stack(
+            [metrics["test_rels_agreement_ratio"] for metrics in outputs[1]]
+        )
+        n_pairs = torch.stack(
+            [
+                torch.tensor(metrics["n_pairs"], device=self.device)
+                for metrics in outputs[1]
+            ]
+        )
+        test_agreement_ratio = torch.sum(agreement_ratios * n_pairs) / torch.sum(
+            n_pairs
+        )
+        self.log("test_rels_agreement_ratio", test_agreement_ratio)
