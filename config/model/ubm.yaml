@@ -2,6 +2,6 @@ defaults:
   - base
 
 _target_: src.model.UBM
-n_results: "${data.n_results}"
+n_results: "${data.loader.n_results}"
 optimizer: adam
 learning_rate: 0.001
