@@ -22,6 +22,7 @@ class MSLR(pl.LightningDataModule):
         shuffle: bool,
         num_workers: int,
         persistent_workers: bool,
+        n_results: int,
     ):
         super().__init__()
         self.loader = loader
@@ -34,6 +35,7 @@ class MSLR(pl.LightningDataModule):
         self.shuffle = shuffle
         self.num_workers = num_workers
         self.persistent_workers = persistent_workers
+        self.n_results = n_results
 
         self.dataset = None
         self.train_policy_scores = None
@@ -102,6 +104,9 @@ class MSLR(pl.LightningDataModule):
     def get_n_documents(self) -> int:
         self.assert_setup()
         return self.dataset.n.sum()
+
+    def get_n_results(self) -> int:
+        return self.n_results
 
     def has_train_policy_scores(self):
         self.assert_setup()

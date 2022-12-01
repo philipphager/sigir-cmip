@@ -17,16 +17,16 @@ train_simulator:
   user_model: ???
   query_dist: ???
   n_sessions: 5_000_000
-  rank_size: 10
+  rank_size: "${data.n_results}"
 val_simulator:
   _target_: src.data.simulation.Simulator
   user_model: ???
   query_dist: ???
   n_sessions: 1_000_000
-  rank_size: 10
+  rank_size: "${data.n_results}"
 test_simulator:
   _target_: src.data.simulation.Simulator
   user_model: ???
   query_dist: ???
   n_sessions: 1_000_000
-  rank_size: 10
+  rank_size: "${data.n_results}"

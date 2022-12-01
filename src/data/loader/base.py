@@ -15,14 +15,12 @@ class Loader(ABC):
         self,
         name: str,
         fold: int,
-        n_results: int,
         load_features: bool,
         pipeline: Pipeline,
         base_dir: str,
     ):
         self.name = name
         self.fold = fold
-        self.n_results = n_results
         self.load_features = load_features
         self.pipeline = pipeline
         self.base_dir = Path(base_dir).expanduser()

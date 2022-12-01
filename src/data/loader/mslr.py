@@ -17,12 +17,11 @@ class MSLR10K(Loader):
         self,
         name: str,
         fold: int,
-        n_results: int,
         load_features: bool,
         pipeline: Pipeline,
         base_dir: str,
     ):
-        super().__init__(name, fold, n_results, load_features, pipeline, base_dir)
+        super().__init__(name, fold, load_features, pipeline, base_dir)
 
     def _parse(self, split: str, load_features: bool) -> pd.DataFrame:
         zip_path = download(self.url, self.download_directory / self.zip_file)
@@ -53,12 +52,11 @@ class MSLR30K(Loader):
         self,
         name: str,
         fold: int,
-        n_results: int,
         load_features: bool,
         pipeline: Pipeline,
         base_dir: str,
     ):
-        super().__init__(name, fold, n_results, load_features, pipeline, base_dir)
+        super().__init__(name, fold, load_features, pipeline, base_dir)
 
     def _parse(self, split: str, load_features: bool) -> pd.DataFrame:
         zip_path = download(self.url, self.download_directory / self.zip_file)
