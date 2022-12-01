@@ -16,11 +16,12 @@ train_val_trainer:
       patience: 1
     - _target_: pytorch_lightning.callbacks.RichProgressBar
     - _target_: pytorch_lightning.callbacks.ModelCheckpoint
-      dirpath: ${data.base_dir}checkpoints/
+      dirpath: ${base_dir}checkpoints/
       filename: ${filename}
       monitor: val_loss
       mode: min
   logger: ???
+#  logger: ???
 
 test_trainer:
   _target_: pytorch_lightning.Trainer
@@ -39,4 +40,5 @@ wandb_logger:
   id: ???
 
 random_state: 0
+base_dir: ???
 filename: "${hydra:runtime.choices.model}_${hydra:runtime.choices.logging_policy@train_policy}_${hydra:runtime.choices.user_model@train_user}_${hydra:runtime.choices.data}_seed-${random_state}"
