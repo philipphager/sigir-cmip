@@ -59,8 +59,9 @@ class MSLR(pl.LightningDataModule):
             )
 
         elif stage == TrainerFn.TESTING:
-            self.train_policy.fit(self.dataset)
-            self.test_policy_scores = self.train_policy.predict(self.dataset)
+            self.test_policy.fit(self.dataset)
+            self.test_policy_scores = self.test_policy.predict(self.dataset)
+
             self.test_clicks = self.test_simulator(
                 self.dataset,
                 self.test_policy_scores,
@@ -102,13 +103,21 @@ class MSLR(pl.LightningDataModule):
         self.assert_setup()
         return self.dataset.n.sum()
 
-    def get_train_policy_scores(self):
+    def has_train_policy_scores(self):
         self.assert_setup()
+        return self.train_policy_scores is not None
+
+    def has_test_policy_scores(self):
+        self.assert_setup()
+        return self.test_policy_scores is not None
+
+    def get_train_policy_scores(self):
+        assert self.has_train_policy_scores()
         return self.train_policy_scores
 
     def get_test_policy_scores(self):
-        self.assert_setup()
-        return self.train_policy_scores
+        assert self.has_test_policy_scores()
+        return self.test_policy_scores
 
     def assert_setup(self):
         assert self.dataset is not None, "Call setup(stage='fit') first"
