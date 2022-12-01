@@ -1,43 +1,8 @@
 defaults:
   - _self_
   - data: mslr10k
-  - logging_policy@train_policy: noisy-oracle
-  - logging_policy@test_policy: uniform
-  - user_model@train_user: graded-trust
-  - user_model@test_user: graded-trust
-  - query_dist@train_qdist: powerlaw
-  - query_dist@test_qdist: powerlaw
   - model: cacm-minus
   - env
-
-train_simulator:
-  _target_: src.simulation.Simulator
-  user_model: ${train_user}
-  query_dist: ${train_qdist}
-  n_sessions: 5_000_000
-  rank_size: 10
-
-val_simulator:
-  _target_: src.simulation.Simulator
-  user_model: ${train_user}
-  query_dist: ${train_qdist}
-  n_sessions: 1_000_000
-  rank_size: 10
-
-test_simulator:
-  _target_: src.simulation.Simulator
-  user_model: ${test_user}
-  query_dist: ${test_qdist}
-  n_sessions: 1_000_000
-  rank_size: 10
-
-datamodule:
-  _target_: src.data.ClickModelDataModule
-  datasets: ???
-  batch_size: 256
-  shuffle: True
-  num_workers: 2
-  persistent_workers: True
 
 train_val_trainer:
   _target_: pytorch_lightning.Trainer
