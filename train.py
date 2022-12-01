@@ -7,7 +7,6 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 
-from src.util.cache import cache
 from src.util.file import get_checkpoint_directory, hash_config
 
 warnings.filterwarnings(
