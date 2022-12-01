@@ -20,8 +20,8 @@ class MSLR(pl.LightningDataModule):
         test_simulator: Simulator,
         batch_size: int,
         shuffle: bool,
-        num_workers: 2,
-        persistent_workers: True,
+        num_workers: int,
+        persistent_workers: bool,
     ):
         super().__init__()
         self.loader = loader
