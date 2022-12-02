@@ -2,7 +2,7 @@ from abc import ABC
 
 import torch
 
-from src.data.loader.preprocessing import RatingDataset
+from src.data.dataset import RatingDataset
 
 
 class LoggingPolicy(ABC):

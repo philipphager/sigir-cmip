@@ -1,2 +1,2 @@
-from .base import Loader
+from .base import RatingDatasetLoader
 from .mslr import MSLR10K, MSLR30K

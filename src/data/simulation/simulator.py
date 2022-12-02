@@ -3,7 +3,7 @@ import logging
 import torch
 from torch.utils.data import Dataset
 
-from src.data.loader.preprocessing import RatingDataset
+from src.data.dataset import RatingDataset
 from src.data.simulation.query_dist.base import QueryDist
 from src.data.simulation.user_model.base import UserModel
 from src.util.tensor import scatter_rank_add

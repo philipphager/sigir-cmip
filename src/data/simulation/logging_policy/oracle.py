@@ -1,6 +1,6 @@
 import torch
 
-from src.data.loader.preprocessing import RatingDataset
+from src.data.dataset import RatingDataset
 from src.model.loss import mask_padding
 from src.data.simulation.logging_policy.base import LoggingPolicy
 

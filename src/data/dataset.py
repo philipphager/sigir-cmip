@@ -87,7 +87,7 @@ class ParquetClickDataset(IterableDataset, ABC):
         return query_ids, x, y_click, y_click, n
 
 
-class ParquetRatingDataset(Dataset):
+class RatingDataset(Dataset):
     def __init__(self, path: Union[str, Path]):
         self.path = path
 
@@ -106,7 +106,7 @@ class ParquetRatingDataset(Dataset):
         """
         return pad_sequence([torch.tensor(y) for y in column], batch_first=True)
 
-    def __call__(self, i):
+    def __getitem__(self, i):
         return self.query_id[i], self.x[i], self.y[i], self.n[i]
 
     def __len__(self):
