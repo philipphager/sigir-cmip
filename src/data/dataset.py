@@ -2,19 +2,19 @@ import logging
 import math
 from abc import ABC
 from pathlib import Path
-from typing import List, Union, Callable
+from typing import List, Union
 
+import pandas as pd
 import torch
 from pyarrow import Table
 from pyarrow.parquet import ParquetFile
 from torch.nn.utils.rnn import pad_sequence
-from torch.utils.data import IterableDataset, DataLoader
-
+from torch.utils.data import IterableDataset, DataLoader, Dataset
 
 logger = logging.getLogger(__name__)
 
 
-class ParquetDataset(IterableDataset, ABC):
+class ParquetClickDataset(IterableDataset, ABC):
     """
     Loads a click dataset from a .parquet file, expecting the following columns:
 
@@ -33,11 +33,9 @@ class ParquetDataset(IterableDataset, ABC):
     https://pytorch.org/docs/stable/data.html#torch.utils.data.IterableDataset
     """
 
-    def __init__(self, path: Union[str, Path], batch_size: int, collate_fn: Callable):
-        super(ParquetDataset).__init__()
+    def __init__(self, path: Union[str, Path], batch_size: int):
         self.path = Path(path)
         self.batch_size = batch_size
-        self.collate_fn = collate_fn
 
     def __iter__(self):
         file = ParquetFile(self.path)
@@ -46,7 +44,7 @@ class ParquetDataset(IterableDataset, ABC):
         row_groups = self.get_row_groups(file.num_row_groups, n_workers, worker_id)
         logger.info(f"Worker with id: {worker_id} iterating {len(row_groups)} groups")
 
-        return map(self.collate_fn, file.iter_batches(self.batch_size, row_groups))
+        return map(self.collate_clicks, file.iter_batches(self.batch_size, row_groups))
 
     @staticmethod
     def get_worker_info():
@@ -73,11 +71,6 @@ class ParquetDataset(IterableDataset, ABC):
 
         return list(range(start, end))
 
-
-class ParquetClickDataset(ParquetDataset):
-    def __init__(self, path: Union[str, Path], batch_size: int):
-        super().__init__(path, batch_size, self.collate_clicks)
-
     @staticmethod
     def collate_clicks(batch: Table):
         # Convert arrow table to dict of format: {"query_id": [...], ...}
@@ -94,25 +87,27 @@ class ParquetClickDataset(ParquetDataset):
         return query_ids, x, y_click, y_click, n
 
 
-class ParquetRelevanceDataset(ParquetDataset):
-    def __init__(self, path: Union[str, Path], batch_size: int):
-        super().__init__(path, batch_size, self.collate_relevance)
+class ParquetRatingDataset(Dataset):
+    def __init__(self, path: Union[str, Path]):
+        self.path = path
+
+        df = pd.read_parquet(self.path)
+        assert all([c in df.columns for c in ["query_id", "doc_ids", "relevance"]])
+
+        self.query_id = torch.tensor(df["query_id"])
+        self.n = torch.tensor(df["doc_ids"].map(len))
+        self.x = self.pad(df["doc_ids"])
+        self.y = self.pad(df["relevance"])
 
     @staticmethod
-    def collate_relevance(batch: Table):
-        # Convert arrow table to dict of format: {"query_id": [...], ...}
-        batch = batch.to_pydict()
+    def pad(column: List[List[int]]):
+        """
+        Pad a list of variable-sized lists to max length
+        """
+        return pad_sequence([torch.tensor(y) for y in column], batch_first=True)
 
-        # Convert to torch tensors and pad all tensors in batch.
-        query_ids = torch.tensor(batch["query_id"])
-        n = torch.tensor([len(x) for x in batch["doc_ids"]])
-        x = pad_sequence(
-            [torch.tensor(x) for x in batch["doc_ids"]],
-            batch_first=True,
-        )
-        y = pad_sequence(
-            [torch.tensor(y) for y in batch["relevance"]],
-            batch_first=True,
-        )
+    def __call__(self, i):
+        return self.query_id[i], self.x[i], self.y[i], self.n[i]
 
-        return query_ids, x, y, n
+    def __len__(self):
+        return len(self.query_id)
