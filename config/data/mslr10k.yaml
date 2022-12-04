@@ -1,6 +1,6 @@
 defaults:
   - base
-  - loader: mslr10k
+  - loader@rating_loader: mslr10k-ratings
   - logging_policy@train_policy: noisy-oracle
   - logging_policy@test_policy: uniform
   - user_model@train_simulator.user_model: graded-trust

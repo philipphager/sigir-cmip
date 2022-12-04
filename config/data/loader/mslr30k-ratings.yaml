@@ -1,8 +1,8 @@
 defaults:
   - base
 
-_target_: src.data.loader.MSLR10K
-name: mslr-web10k
+_target_: src.data.loader.MSLR30KLoader
+name: mslr-web30k
 fold: 1
 load_features: false
 
@@ -10,10 +10,10 @@ pipeline:
   _target_: src.data.loader.preprocessing.Pipeline
   steps:
     - _target_: src.data.loader.preprocessing.StratifiedTruncate
-      max_length: 100
+      max_length: 201 # 90th percentile
       random_state: "${random_state}"
     - _target_: src.data.loader.preprocessing.DiscardShortQueries
-      min_length: "${data.n_results}"
+      min_length: "${data.loader.n_results}"
     - _target_: src.data.loader.preprocessing.Shuffle
       random_state: "${random_state}"
     - _target_: src.data.loader.preprocessing.GenerateDocumentIds
