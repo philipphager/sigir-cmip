@@ -77,13 +77,3 @@ class YandexClickLoader(DatasetLoader[ParquetClickDataset]):
     @property
     def splits(self) -> List[str]:
         return ["train"]
-
-
-if __name__ == "__main__":
-    df = YandexClickLoader(
-        "yandex-clicks",
-        1,
-        "/Users/philipphager/.ltr_datasets/",
-    ).load("train", 256)
-
-    print(df)
