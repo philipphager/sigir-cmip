@@ -4,7 +4,8 @@ import pytorch_lightning as pl
 from pytorch_lightning.trainer.states import TrainerFn
 from torch.utils.data import DataLoader
 
-from src.data.loader import Loader
+from src.data.dataset import RatingDataset
+from src.data.loader.base import Loader
 from src.data.simulation import Simulator
 from src.data.simulation.logging_policy import LoggingPolicy
 
@@ -12,7 +13,7 @@ from src.data.simulation.logging_policy import LoggingPolicy
 class MSLR(pl.LightningDataModule):
     def __init__(
         self,
-        loader: Loader,
+        rating_loader: Loader[RatingDataset],
         train_policy: LoggingPolicy,
         test_policy: LoggingPolicy,
         train_simulator: Simulator,
@@ -25,7 +26,7 @@ class MSLR(pl.LightningDataModule):
         n_results: int,
     ):
         super().__init__()
-        self.loader = loader
+        self.rating_loader = rating_loader
         self.train_policy = train_policy
         self.test_policy = test_policy
         self.train_simulator = train_simulator
@@ -45,7 +46,7 @@ class MSLR(pl.LightningDataModule):
         pass
 
     def setup(self, stage: Optional[str] = None) -> None:
-        self.dataset = self.loader.load("train")
+        self.dataset = self.rating_loader.load("train")
 
         if stage == TrainerFn.FITTING:
             self.train_policy.fit(self.dataset)
