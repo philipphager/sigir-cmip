@@ -1,5 +1,9 @@
 defaults:
   - base
+  - loader@rating_loader: yandex-ratings
+  - loader@click_loader: yandex-clicks
 
 _target_: src.data.Yandex
-n_documents: 296_607 # Source: https://github.com/philipphager/yandex-ultr
+n_documents: 296_607 # Avoid costly counting of unique docs, source: https://github.com/philipphager/yandex-ultr
+train_val_test_split: [0.7, 0.15, 0.15] # Split clicks
+shuffle_clicks: False # Shuffle sections of the click dataset before splitting

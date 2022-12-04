@@ -1,17 +1,20 @@
-from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 import pytorch_lightning as pl
-from pytorch_lightning.trainer.states import TrainerFn
 from torch import Tensor
 from torch.utils.data import DataLoader
 
-from src.data.dataset import ParquetRelevanceDataset, ParquetClickDataset
+from src.data.dataset import RatingDataset, ParquetClickDataset
+from src.data.loader.base import Loader
 
 
 class Yandex(pl.LightningDataModule):
     def __init__(
         self,
+        rating_loader: Loader[RatingDataset],
+        click_loader: Loader[ParquetClickDataset],
+        train_val_test_split: Tuple[int, int, int],
+        shuffle_clicks: bool,
         batch_size: int,
         shuffle: bool,
         num_workers: int,
@@ -20,6 +23,10 @@ class Yandex(pl.LightningDataModule):
         n_results: int,
     ):
         super().__init__()
+        self.rating_loader = rating_loader
+        self.click_loader = click_loader
+        self.train_val_test_split = train_val_test_split
+        self.shuffle_clicks = shuffle_clicks
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.num_workers = num_workers
@@ -33,22 +40,22 @@ class Yandex(pl.LightningDataModule):
         pass
 
     def setup(self, stage: Optional[str] = None) -> None:
-        self.dataset = ParquetRelevanceDataset(
-            "/Users/philipphager/.ltr_datasets/cache/relevance.parquet",
-            self.batch_size,
+        self.dataset = self.rating_loader.load(split="train")
+        self.clicks = self.click_loader.load(split="train", batch_size=256)
+
+        assert (
+            sum(self.train_val_test_split) == 1.0
+        ), "Splits for train, val, test clicks must sum to 1.0"
+        train_split, val_split, test_split = self.train_val_test_split
+
+        self.train_clicks, self.test_clicks = self.clicks.split(
+            train_size=train_split,
+            shuffle=self.shuffle_clicks,
         )
-
-        self.click_train = ParquetClickDataset(
-            "/Users/philipphager/.ltr_datasets/cache/clicks.parquet",
-            self.batch_size,
+        self.val_clicks, self.test_clicks = self.test_clicks.split(
+            train_size=val_split / (val_split + test_split),
+            shuffle=self.shuffle_clicks,
         )
-
-        if stage == TrainerFn.FITTING:
-            self.train_clicks = self.click_train
-            self.val_clicks = self.click_train
-
-        elif stage == TrainerFn.TESTING:
-            self.test_clicks = self.click_train
 
     def train_dataloader(self):
         return DataLoader(

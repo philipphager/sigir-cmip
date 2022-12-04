@@ -2,12 +2,14 @@ import logging
 import math
 from abc import ABC
 from pathlib import Path
-from typing import List, Union
+from typing import List, Union, Optional, Tuple
 
+import numpy as np
 import pandas as pd
 import torch
 from pyarrow import Table
 from pyarrow.parquet import ParquetFile
+from sklearn.model_selection import train_test_split
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import IterableDataset, DataLoader, Dataset
 
@@ -33,18 +35,49 @@ class ParquetClickDataset(IterableDataset, ABC):
     https://pytorch.org/docs/stable/data.html#torch.utils.data.IterableDataset
     """
 
-    def __init__(self, path: Union[str, Path], batch_size: int):
+    def __init__(
+        self,
+        path: Union[str, Path],
+        batch_size: int,
+        row_group_subset: Optional[Tuple[int, int]] = None,
+    ):
         self.path = Path(path)
         self.batch_size = batch_size
+        self.row_group_subset = row_group_subset
+        self.row_groups = self._get_row_groups()
 
     def __iter__(self):
         file = ParquetFile(self.path)
+        logger.info(f"New worker iterating {len(self.row_groups)} groups")
 
+        return map(
+            self.collate_clicks,
+            file.iter_batches(self.batch_size, self.row_groups),
+        )
+
+    def split(self, train_size: float, shuffle: bool):
+        train, test = train_test_split(
+            self.row_groups,
+            train_size=train_size,
+            shuffle=shuffle,
+        )
+        return (
+            ParquetClickDataset(self.path, self.batch_size, train),
+            ParquetClickDataset(self.path, self.batch_size, test),
+        )
+
+    def _get_row_groups(
+        self,
+    ) -> List[int]:
+        file = ParquetFile(self.path)
         n_workers, worker_id = self.get_worker_info()
-        row_groups = self.get_row_groups(file.num_row_groups, n_workers, worker_id)
-        logger.info(f"Worker with id: {worker_id} iterating {len(row_groups)} groups")
 
-        return map(self.collate_clicks, file.iter_batches(self.batch_size, row_groups))
+        if self.row_group_subset is None:
+            row_groups = np.arange(file.num_row_groups)
+        else:
+            row_groups = np.array(self.row_group_subset)
+
+        return list(np.array_split(row_groups, n_workers)[worker_id])
 
     @staticmethod
     def get_worker_info():
@@ -57,19 +90,6 @@ class ParquetClickDataset(IterableDataset, ABC):
             worker_id = worker_info.id
 
         return n_workers, worker_id
-
-    @staticmethod
-    def get_row_groups(total_groups: int, n_workers: int, worker_id: id) -> List[int]:
-        assert n_workers <= total_groups, (
-            f"Cannot split {total_groups} row groups between {n_workers}."
-            f"Use less workers or create a .parquet file with more row groups."
-        )
-
-        groups_per_worker = math.ceil(total_groups / n_workers)
-        start = worker_id * groups_per_worker
-        end = min(start + groups_per_worker, total_groups)
-
-        return list(range(start, end))
 
     @staticmethod
     def collate_clicks(batch: Table):
