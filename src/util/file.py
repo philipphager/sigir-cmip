@@ -31,6 +31,11 @@ def download(url: str, out_path: Path) -> Path:
     return out_path
 
 
+def copy_file(in_path: Path, out_path: Path):
+    if in_path.exists() and not out_path.exists():
+        shutil.copy2(in_path, out_path)
+
+
 def verify_file(path: Path, checksum: str) -> bool:
     if not path.exists():
         raise FileNotFoundError(f"File not found: {path}")
