@@ -4,9 +4,7 @@ from typing import List
 import pandas as pd
 
 from src.data.dataset import ParquetClickDataset
-from src.data.loader import MSLR10KLoader
 from src.data.loader.base import DatasetLoader, RatingDatasetLoader
-from src.data.loader.preprocessing import Pipeline, GenerateDocumentIds
 from src.util.file import download, verify_file, extract, copy_file
 
 logger = logging.getLogger(__name__)
