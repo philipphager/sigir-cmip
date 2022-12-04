@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List
+from typing import List, TypeVar, Generic, Union, Optional
 
 import pandas as pd
 
@@ -11,41 +11,26 @@ from src.data.loader.preprocessing import Pipeline
 logger = logging.getLogger(__name__)
 
 
-class RatingDatasetLoader(ABC):
-    """
-    Base class for downloading and preprocessing supervised LTR datasets
-    with relevance annotations.
-    """
+T = TypeVar("T")
 
-    def __init__(
-        self,
-        name: str,
-        fold: int,
-        load_features: bool,
-        pipeline: Pipeline,
-        base_dir: str,
-    ):
-        self.name = name
-        self.fold = fold
-        self.load_features = load_features
-        self.pipeline = pipeline
+
+class DatasetLoader(Generic[T], ABC):
+    def __init__(self, base_dir: Union[Path, str]):
         self.base_dir = Path(base_dir).expanduser()
 
-        assert fold in self.folds
-
     @property
-    def rating_directory(self) -> Path:
+    def output_directory(self) -> Path:
         """
-        Directory to pre-processed rating datasets
+        Directory for pre-processed datasets
         """
-        path = self.base_dir / "rating-dataset"
+        path = self.base_dir / "processed"
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     @property
     def dataset_directory(self) -> Path:
         """
-        Directory for extracted datasets
+        Download directory for extracting zipped datasets
         """
         path = self.base_dir / "dataset"
         path.mkdir(parents=True, exist_ok=True)
@@ -60,14 +45,45 @@ class RatingDatasetLoader(ABC):
         path.mkdir(parents=True, exist_ok=True)
         return path
 
+    @abstractmethod
+    def load(self, **kwargs) -> T:
+        pass
+
+
+class RatingDatasetLoader(DatasetLoader[RatingDataset]):
+    """
+    Base class for downloading and preprocessing supervised LTR datasets
+    with relevance annotations.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        fold: int,
+        base_dir: str,
+        load_features: Optional[bool] = False,
+        pipeline: Optional[Pipeline] = None,
+    ):
+        super(RatingDatasetLoader, self).__init__(base_dir)
+        self.name = name
+        self.fold = fold
+        self.load_features = load_features
+        self.pipeline = pipeline
+        self.base_dir = Path(base_dir).expanduser()
+
     def load(self, split: str) -> RatingDataset:
-        logger.info(f"Loading {self.name}, fold: {self.fold}, split: {split}")
+        assert self.fold in self.folds, f"Fold must one of {self.folds}"
         assert split in self.splits, f"Split must one of {self.splits}"
-        path = self.rating_directory / f"{self.name}-{self.fold}-{split}.parquet"
+        logger.info(f"Loading {self.name}, fold: {self.fold}, split: {split}")
+
+        path = self.output_directory / f"{self.name}-{self.fold}-{split}.parquet"
 
         if not path.exists():
             df = self._parse(split, self.load_features)
-            df = self.pipeline(df)
+
+            if self.pipeline is not None:
+                df = self.pipeline(df)
+
             df.to_parquet(path)
 
         return RatingDataset(path)

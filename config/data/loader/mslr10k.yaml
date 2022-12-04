@@ -2,7 +2,7 @@ defaults:
   - base
 
 _target_: src.data.loader.MSLR10K
-name: MSLR-Web10K
+name: mslr-web10k
 fold: 1
 load_features: false
 

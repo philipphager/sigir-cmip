@@ -1,2 +1,2 @@
-from .base import RatingDatasetLoader
-from .mslr import MSLR10K, MSLR30K
+from .mslr import MSLR10KLoader, MSLR30KLoader
+from .yandex import YandexClickLoader, YandexRatingLoader

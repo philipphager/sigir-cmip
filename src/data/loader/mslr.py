@@ -7,7 +7,7 @@ from src.data.loader.preprocessing import Pipeline
 from src.util.file import download, extract, read_svmlight_file, verify_file
 
 
-class MSLR10K(RatingDatasetLoader):
+class MSLR10KLoader(RatingDatasetLoader):
     url = "https://api.onedrive.com/v1.0/shares/s!AtsMfWUz5l8nbOIoJ6Ks0bEMp78/root/content"
     zip_file = "MSLR-WEB10K.zip"
     file = "MSLR-WEB10K"
@@ -21,7 +21,7 @@ class MSLR10K(RatingDatasetLoader):
         pipeline: Pipeline,
         base_dir: str,
     ):
-        super().__init__(name, fold, load_features, pipeline, base_dir)
+        super().__init__(name, fold, base_dir, load_features, pipeline)
 
     def _parse(self, split: str, load_features: bool) -> pd.DataFrame:
         zip_path = download(self.url, self.download_directory / self.zip_file)
@@ -42,7 +42,7 @@ class MSLR10K(RatingDatasetLoader):
         return ["train", "test", "val"]
 
 
-class MSLR30K(RatingDatasetLoader):
+class MSLR30KLoader(RatingDatasetLoader):
     url = "https://api.onedrive.com/v1.0/shares/s!AtsMfWUz5l8nbXGPBlwD1rnFdBY/root/content"
     zip_file = "MSLR-WEB30K.zip"
     file = "MSLR-WEB30K"
@@ -56,7 +56,7 @@ class MSLR30K(RatingDatasetLoader):
         pipeline: Pipeline,
         base_dir: str,
     ):
-        super().__init__(name, fold, load_features, pipeline, base_dir)
+        super().__init__(name, fold, base_dir, load_features, pipeline)
 
     def _parse(self, split: str, load_features: bool) -> pd.DataFrame:
         zip_path = download(self.url, self.download_directory / self.zip_file)
