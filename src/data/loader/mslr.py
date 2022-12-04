@@ -2,12 +2,12 @@ from typing import List
 
 import pandas as pd
 
-from src.data.loader.base import RatingDatasetLoader
+from src.data.loader.base import RatingLoader
 from src.data.loader.preprocessing import Pipeline
 from src.util.file import download, extract, read_svmlight_file, verify_file
 
 
-class MSLR10KLoader(RatingDatasetLoader):
+class MSLR10KLoader(RatingLoader):
     url = "https://api.onedrive.com/v1.0/shares/s!AtsMfWUz5l8nbOIoJ6Ks0bEMp78/root/content"
     zip_file = "MSLR-WEB10K.zip"
     file = "MSLR-WEB10K"
@@ -42,7 +42,7 @@ class MSLR10KLoader(RatingDatasetLoader):
         return ["train", "test", "val"]
 
 
-class MSLR30KLoader(RatingDatasetLoader):
+class MSLR30KLoader(RatingLoader):
     url = "https://api.onedrive.com/v1.0/shares/s!AtsMfWUz5l8nbXGPBlwD1rnFdBY/root/content"
     zip_file = "MSLR-WEB30K.zip"
     file = "MSLR-WEB30K"

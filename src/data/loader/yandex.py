@@ -4,13 +4,13 @@ from typing import List
 import pandas as pd
 
 from src.data.dataset import ParquetClickDataset
-from src.data.loader.base import DatasetLoader, RatingDatasetLoader
+from src.data.loader.base import Loader, RatingLoader
 from src.util.file import download, verify_file, extract, copy_file
 
 logger = logging.getLogger(__name__)
 
 
-class YandexRatingLoader(RatingDatasetLoader):
+class YandexRatingLoader(RatingLoader):
     url = "https://www.dropbox.com/s/xo69hdfcf1k46oi/Yandex.zip?dl=1"
     zip_file = "Yandex.zip"
     file = "Yandex"
@@ -41,7 +41,7 @@ class YandexRatingLoader(RatingDatasetLoader):
         return ["train"]
 
 
-class YandexClickLoader(DatasetLoader[ParquetClickDataset]):
+class YandexClickLoader(Loader[ParquetClickDataset]):
     url = "https://www.dropbox.com/s/xo69hdfcf1k46oi/Yandex.zip?dl=1"
     zip_file = "Yandex.zip"
     file = "Yandex"

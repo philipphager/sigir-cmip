@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-class DatasetLoader(Generic[T], ABC):
+class Loader(Generic[T], ABC):
     def __init__(self, base_dir: Union[Path, str]):
         self.base_dir = Path(base_dir).expanduser()
 
@@ -50,7 +50,7 @@ class DatasetLoader(Generic[T], ABC):
         pass
 
 
-class RatingDatasetLoader(DatasetLoader[RatingDataset]):
+class RatingLoader(Loader[RatingDataset]):
     """
     Base class for downloading and preprocessing supervised LTR datasets
     with relevance annotations.
@@ -64,7 +64,7 @@ class RatingDatasetLoader(DatasetLoader[RatingDataset]):
         load_features: Optional[bool] = False,
         pipeline: Optional[Pipeline] = None,
     ):
-        super(RatingDatasetLoader, self).__init__(base_dir)
+        super(RatingLoader, self).__init__(base_dir)
         self.name = name
         self.fold = fold
         self.load_features = load_features
