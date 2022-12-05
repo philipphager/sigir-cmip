@@ -72,7 +72,7 @@ class Yandex(pl.LightningDataModule):
         return [
             DataLoader(
                 self.val_clicks,
-                batch_size=self.batch_size,
+                batch_size=None,  # ParquetClickDataset takes care of batching.
                 shuffle=False,
                 num_workers=self.num_workers,
                 persistent_workers=self.persistent_workers,
