@@ -103,7 +103,7 @@ class ParquetClickDataset(IterableDataset, ABC):
         n_batch, n_items = x.shape
         n = torch.full((n_batch,), n_items)
 
-        return query_ids, x, y_click, y_click, n
+        return query_ids, x, y_click, n
 
 
 class RatingDataset(Dataset):

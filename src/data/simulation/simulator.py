@@ -30,7 +30,7 @@ class ClickDataset(Dataset):
         return len(self.query_ids)
 
     def __getitem__(self, i: int):
-        return self.query_ids[i], self.x[i], self.y[i], self.y_click[i], self.n[i]
+        return self.query_ids[i], self.x[i], self.y_click[i], self.n[i]
 
     def get_document_rank_clicks(self, n_documents) -> torch.Tensor:
         return scatter_rank_add(self.y_click, self.x, n_documents)

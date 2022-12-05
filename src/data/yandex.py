@@ -69,12 +69,20 @@ class Yandex(pl.LightningDataModule):
         )
 
     def val_dataloader(self):
-        return DataLoader(
-            self.val_clicks,
-            batch_size=None,
-            num_workers=self.num_workers,
-            persistent_workers=self.persistent_workers,
-        )
+        return [
+            DataLoader(
+                self.val_clicks,
+                batch_size=self.batch_size,
+                shuffle=False,
+                num_workers=self.num_workers,
+                persistent_workers=self.persistent_workers,
+            ),
+            DataLoader(
+                self.dataset,
+                batch_size=self.batch_size,
+                num_workers=0,
+            ),
+        ]
 
     def test_dataloader(self):
         return [
