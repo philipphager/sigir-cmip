@@ -8,6 +8,7 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 
 from src.util.file import get_checkpoint_directory, hash_config
+from src.util.hydra import ConfigWrapper
 
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"
@@ -23,7 +24,7 @@ def main(config: DictConfig):
     logger.info("Working directory : {}".format(os.getcwd()))
     seed_everything(config.random_state)
 
-    dataset = instantiate(config.data)
+    dataset = instantiate(config.data, config_wrapper=ConfigWrapper(config))
     dataset.setup("fit")
 
     checkpoint_path = get_checkpoint_directory(config)
@@ -33,7 +34,7 @@ def main(config: DictConfig):
     wandb_config = OmegaConf.to_container(config, resolve=True)
     wandb_logger.experiment.config.update(wandb_config)
 
-    trainer = instantiate(config.train_val_trainer)
+    trainer = instantiate(config.train_val_trainer, logger=wandb_logger)
     model = instantiate(
         config.model,
         n_documents=dataset.get_n_documents(),
