@@ -1,43 +1,12 @@
 import logging
 
 import torch
-from torch.utils.data import Dataset
 
-from src.data.dataset import RatingDataset
+from src.data.dataset import ClickDataset, RatingDataset
 from src.data.simulation.query_dist.base import QueryDist
 from src.data.simulation.user_model.base import UserModel
-from src.util.tensor import scatter_rank_add
 
 logger = logging.getLogger(__name__)
-
-
-class ClickDataset(Dataset):
-    def __init__(
-        self,
-        query_ids: torch.Tensor,
-        x: torch.Tensor,
-        y: torch.Tensor,
-        y_click: torch.Tensor,
-        n: torch.Tensor,
-    ):
-        self.query_ids = query_ids
-        self.x = x
-        self.y = y
-        self.y_click = y_click
-        self.n = n
-
-    def __len__(self):
-        return len(self.query_ids)
-
-    def __getitem__(self, i: int):
-        return self.query_ids[i], self.x[i], self.y_click[i], self.n[i]
-
-    def get_document_rank_clicks(self, n_documents) -> torch.Tensor:
-        return scatter_rank_add(self.y_click, self.x, n_documents)
-
-    def get_document_rank_impressions(self, n_documents) -> torch.Tensor:
-        impressions = (self.x > 0).float()
-        return scatter_rank_add(impressions, self.x, n_documents)
 
 
 class Simulator:

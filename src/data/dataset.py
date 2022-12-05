@@ -1,5 +1,4 @@
 import logging
-from abc import ABC
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
@@ -12,10 +11,67 @@ from sklearn.model_selection import train_test_split
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import Dataset, IterableDataset
 
+from src.util.tensor import scatter_rank_add
+
 logger = logging.getLogger(__name__)
 
 
-class ParquetClickDataset(IterableDataset, ABC):
+class RatingDataset(Dataset):
+    def __init__(self, path: Union[str, Path]):
+        self.path = path
+
+        df = pd.read_parquet(self.path)
+        assert all([c in df.columns for c in ["query_id", "doc_ids", "relevance"]])
+
+        self.query_id = torch.tensor(df["query_id"])
+        self.n = torch.tensor(df["doc_ids"].map(len))
+        self.x = self.pad(df["doc_ids"])
+        self.y = self.pad(df["relevance"])
+
+    @staticmethod
+    def pad(column: List[List[int]]):
+        """
+        Pad a list of variable-sized lists to max length
+        """
+        return pad_sequence([torch.tensor(y) for y in column], batch_first=True)
+
+    def __getitem__(self, i):
+        return self.query_id[i], self.x[i], self.y[i], self.n[i]
+
+    def __len__(self):
+        return len(self.query_id)
+
+
+class ClickDataset(Dataset):
+    def __init__(
+        self,
+        query_ids: torch.Tensor,
+        x: torch.Tensor,
+        y: torch.Tensor,
+        y_click: torch.Tensor,
+        n: torch.Tensor,
+    ):
+        self.query_ids = query_ids
+        self.x = x
+        self.y = y
+        self.y_click = y_click
+        self.n = n
+
+    def __len__(self):
+        return len(self.query_ids)
+
+    def __getitem__(self, i: int):
+        return self.query_ids[i], self.x[i], self.y_click[i], self.n[i]
+
+    def get_document_rank_clicks(self, n_documents) -> torch.Tensor:
+        return scatter_rank_add(self.y_click, self.x, n_documents)
+
+    def get_document_rank_impressions(self, n_documents) -> torch.Tensor:
+        impressions = (self.x > 0).float()
+        return scatter_rank_add(impressions, self.x, n_documents)
+
+
+class ParquetClickDataset(IterableDataset):
     """
     Loads a click dataset from a .parquet file, expecting the following columns:
 
@@ -104,29 +160,3 @@ class ParquetClickDataset(IterableDataset, ABC):
         n = torch.full((n_batch,), n_items)
 
         return query_ids, x, y_click, n
-
-
-class RatingDataset(Dataset):
-    def __init__(self, path: Union[str, Path]):
-        self.path = path
-
-        df = pd.read_parquet(self.path)
-        assert all([c in df.columns for c in ["query_id", "doc_ids", "relevance"]])
-
-        self.query_id = torch.tensor(df["query_id"])
-        self.n = torch.tensor(df["doc_ids"].map(len))
-        self.x = self.pad(df["doc_ids"])
-        self.y = self.pad(df["relevance"])
-
-    @staticmethod
-    def pad(column: List[List[int]]):
-        """
-        Pad a list of variable-sized lists to max length
-        """
-        return pad_sequence([torch.tensor(y) for y in column], batch_first=True)
-
-    def __getitem__(self, i):
-        return self.query_id[i], self.x[i], self.y[i], self.n[i]
-
-    def __len__(self):
-        return len(self.query_id)
