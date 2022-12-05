@@ -79,7 +79,7 @@ class Yandex(pl.LightningDataModule):
             ),
             DataLoader(
                 self.dataset,
-                batch_size=self.batch_size,
+                batch_size=len(self.dataset),
                 num_workers=0,
             ),
         ]
@@ -95,7 +95,7 @@ class Yandex(pl.LightningDataModule):
             ),
             DataLoader(
                 self.dataset,
-                batch_size=None,
+                batch_size=len(self.dataset),
                 num_workers=0,
             ),
         ]

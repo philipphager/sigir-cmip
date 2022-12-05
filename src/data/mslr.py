@@ -144,7 +144,7 @@ class MSLR(pl.LightningDataModule):
             ),
             DataLoader(
                 self.dataset,
-                batch_size=self.batch_size,
+                batch_size=len(self.dataset),
                 num_workers=0,
             ),
         ]
@@ -160,7 +160,7 @@ class MSLR(pl.LightningDataModule):
             ),
             DataLoader(
                 self.dataset,
-                batch_size=self.batch_size,
+                batch_size=len(self.dataset),
                 num_workers=0,
             ),
         ]
