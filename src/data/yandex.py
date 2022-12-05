@@ -1,12 +1,18 @@
+import logging
 from typing import Optional, Tuple
 
 import pytorch_lightning as pl
+import torch
 from torch import Tensor
 from torch.utils.data import DataLoader
 
-from src.data.dataset import ClickDataset, RatingDataset
+from src.data.dataset import ClickDataset, ClickDatasetStats, RatingDataset
 from src.data.loader.base import Loader
+from src.util.cache import cache
 from src.util.hydra import ConfigWrapper
+from src.util.tensor import scatter_rank_add
+
+logger = logging.getLogger(__name__)
 
 
 class Yandex(pl.LightningDataModule):
@@ -43,6 +49,27 @@ class Yandex(pl.LightningDataModule):
         pass
 
     def setup(self, stage: Optional[str] = None) -> None:
+        @cache(
+            self.config.base_dir,
+            "cache/train_click_stats",
+            [
+                self.config.data,
+                self.config.random_state,
+            ],
+        )
+        def get_train_click_stats():
+            logger.info("Compute click statistics on Yandex")
+            rank_clicks = torch.zeros((self.n_documents, self.n_results))
+            rank_impressions = torch.zeros((self.n_documents, self.n_results))
+
+            for batch in self.train_clicks:
+                query_ids, x, y_click, n = batch
+                impressions = (x > 0).float()
+                rank_clicks += scatter_rank_add(y_click, x, self.n_documents)
+                rank_impressions += scatter_rank_add(impressions, x, self.n_documents)
+
+            return ClickDatasetStats(rank_clicks, rank_impressions)
+
         self.dataset = self.rating_loader.load(split="train")
         self.clicks = self.click_loader.load(split="train", batch_size=256)
 
@@ -59,6 +86,8 @@ class Yandex(pl.LightningDataModule):
             train_size=val_split / (val_split + test_split),
             shuffle=self.shuffle_clicks,
         )
+
+        self.train_stats = get_train_click_stats()
 
     def train_dataloader(self):
         return DataLoader(
@@ -105,6 +134,9 @@ class Yandex(pl.LightningDataModule):
 
     def get_n_results(self) -> int:
         return self.n_results
+
+    def get_train_stats(self) -> ClickDatasetStats:
+        return self.train_stats
 
     def get_train_policy_scores(self) -> Optional[Tensor]:
         return None

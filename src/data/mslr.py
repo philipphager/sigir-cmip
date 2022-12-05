@@ -1,15 +1,19 @@
+import logging
 from typing import Optional
 
 import pytorch_lightning as pl
 from pytorch_lightning.trainer.states import TrainerFn
 from torch.utils.data import DataLoader
 
-from src.data.dataset import RatingDataset
+from src.data.dataset import ClickDatasetStats, RatingDataset
 from src.data.loader.base import Loader
 from src.data.simulation import Simulator
 from src.data.simulation.logging_policy import LoggingPolicy
 from src.util.cache import cache
 from src.util.hydra import ConfigWrapper
+from src.util.tensor import scatter_rank_add
+
+logger = logging.getLogger(__name__)
 
 
 class MSLR(pl.LightningDataModule):
@@ -48,6 +52,7 @@ class MSLR(pl.LightningDataModule):
         self.train_clicks = None
         self.val_clicks = None
         self.test_clicks = None
+        self.train_stats = None
 
     def setup(self, stage: Optional[str] = None):
         @cache(
@@ -115,12 +120,33 @@ class MSLR(pl.LightningDataModule):
         def simulate_test():
             return self.test_simulator(self.dataset, self.test_policy_scores)
 
+        @cache(
+            self.config.base_dir,
+            "cache/train_click_stats",
+            [
+                self.config.data,
+                self.config.random_state,
+            ],
+        )
+        def get_train_click_stats():
+            logger.info("Compute click statistics on MSLR")
+            n_documents = self.get_n_documents()
+            rank_clicks = scatter_rank_add(
+                self.train_clicks.y_click, self.train_clicks.x, n_documents
+            )
+            rank_impressions = scatter_rank_add(
+                (self.train_clicks.x > 0).float(), self.train_clicks.x, n_documents
+            )
+
+            return ClickDatasetStats(rank_clicks, rank_impressions)
+
         self.dataset = self.rating_loader.load(split="train")
         self.train_policy_scores = train_policy_scores()
 
         if stage == TrainerFn.FITTING:
             self.train_clicks = simulate_train()
             self.val_clicks = simulate_val()
+            self.train_stats = get_train_click_stats()
         elif stage == TrainerFn.TESTING:
             self.test_policy_scores = test_policy_scores()
             self.test_clicks = simulate_test()
@@ -171,6 +197,9 @@ class MSLR(pl.LightningDataModule):
 
     def get_n_results(self) -> int:
         return self.n_results
+
+    def get_train_stats(self) -> ClickDatasetStats:
+        return self.train_stats
 
     def has_train_policy_scores(self):
         self.assert_setup()

@@ -1,4 +1,5 @@
 import logging
+from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
@@ -160,3 +161,9 @@ class ParquetClickDataset(IterableDataset):
         n = torch.full((n_batch,), n_items)
 
         return query_ids, x, y_click, n
+
+
+@dataclass
+class ClickDatasetStats:
+    document_rank_clicks: torch.Tensor
+    document_rank_impressions: torch.Tensor
