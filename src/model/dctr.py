@@ -5,6 +5,7 @@ import torch
 from scipy.stats import beta
 from torch import nn
 
+from ..data.dataset import ClickDatasetStats
 from .base import ClickModel
 
 logger = logging.getLogger(__name__)
@@ -29,12 +30,14 @@ class DCTR(ClickModel):
         optimizer: str,
         learning_rate: float,
         n_documents: int,
+        train_stats: ClickDatasetStats = None,
         lp_scores: torch.FloatTensor = None,
     ):
         super().__init__(loss, optimizer, learning_rate, lp_scores)
         # Turn off optimization for count-based click model
         self.automatic_optimization = False
         self.n_documents = n_documents
+        self.train_stats = train_stats
         # Init priors to 1.0, avoid division by zero in validation before training
         self.prior_clicks = nn.Parameter(
             torch.zeros(1, dtype=torch.float),
@@ -54,14 +57,11 @@ class DCTR(ClickModel):
         )
 
     def on_train_start(self):
-        # Access full train dataset
-        train = self.trainer.train_dataloader.dataset.datasets
-
         # Sum clicks and impressions per document over all ranks
-        clicks = train.get_document_rank_clicks(self.n_documents)
+        clicks = self.train_stats.document_rank_clicks
         self.clicks += clicks.sum(dim=1).to(self.device)
 
-        impressions = train.get_document_rank_impressions(self.n_documents)
+        impressions = self.train_stats.document_rank_impressions
         self.impressions += impressions.sum(dim=1).to(self.device)
 
         # Compute CTRs for documents that got at least one impression
@@ -110,6 +110,7 @@ class RankedDCTR(ClickModel):
         learning_rate: float,
         n_documents: int,
         n_results: int,
+        train_stats: ClickDatasetStats,
         lp_scores: torch.FloatTensor = None,
     ):
         super().__init__(loss, optimizer, learning_rate, lp_scores)
@@ -117,6 +118,7 @@ class RankedDCTR(ClickModel):
         self.automatic_optimization = False
         self.n_documents = n_documents
         self.n_result = n_results
+        self.train_stats = train_stats
         self.prior_clicks = nn.Parameter(
             torch.zeros(n_results),
             requires_grad=False,
@@ -143,12 +145,10 @@ class RankedDCTR(ClickModel):
         )
 
     def on_train_start(self):
-        # Access full train dataset
-        train = self.trainer.train_dataloader.dataset.datasets
-
-        clicks = train.get_document_rank_clicks(self.n_documents)
+        clicks = self.train_stats.document_rank_clicks
         clicks = clicks.to(self.device)
-        impressions = train.get_document_rank_impressions(self.n_documents)
+
+        impressions = self.train_stats.document_rank_impressions
         impressions = impressions.to(self.device)
 
         self.clicks += clicks
