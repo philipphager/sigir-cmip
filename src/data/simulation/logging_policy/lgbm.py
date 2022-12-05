@@ -4,8 +4,8 @@ import torch
 from lightgbm import LGBMRanker, early_stopping
 
 from src.data.dataset import RatingDataset
-from src.model.loss import mask_padding
 from src.data.simulation.logging_policy.base import LoggingPolicy
+from src.model.loss import mask_padding
 
 
 class LightGBMRanker(LoggingPolicy):

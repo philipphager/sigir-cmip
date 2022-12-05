@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List, TypeVar, Generic, Union, Optional
+from typing import Generic, List, Optional, TypeVar, Union
 
 import pandas as pd
 

@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 from torch import Tensor
 from torch.utils.data import DataLoader
 
-from src.data.dataset import RatingDataset, ParquetClickDataset
+from src.data.dataset import ParquetClickDataset, RatingDataset
 from src.data.loader.base import Loader
 
 

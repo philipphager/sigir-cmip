@@ -3,10 +3,10 @@ import torch
 from src.data.simulation.user_model.base import UserModel
 from src.data.simulation.user_model.util import (
     get_binary_relevance,
-    get_position_bias,
     get_false_positive_ctr,
-    get_true_positive_ctr,
     get_graded_relevance,
+    get_position_bias,
+    get_true_positive_ctr,
 )
 
 

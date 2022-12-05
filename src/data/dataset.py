@@ -1,8 +1,7 @@
 import logging
-import math
 from abc import ABC
 from pathlib import Path
-from typing import List, Union, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -11,7 +10,7 @@ from pyarrow import Table
 from pyarrow.parquet import ParquetFile
 from sklearn.model_selection import train_test_split
 from torch.nn.utils.rnn import pad_sequence
-from torch.utils.data import IterableDataset, DataLoader, Dataset
+from torch.utils.data import Dataset, IterableDataset
 
 logger = logging.getLogger(__name__)
 

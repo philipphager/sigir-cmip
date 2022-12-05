@@ -1,9 +1,7 @@
 import torch
 
 from src.data.simulation.user_model.base import UserModel
-from src.data.simulation.user_model.util import (
-    get_graded_relevance,
-)
+from src.data.simulation.user_model.util import get_graded_relevance
 
 
 class GradedDBN(UserModel):

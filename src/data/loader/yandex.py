@@ -5,7 +5,7 @@ import pandas as pd
 
 from src.data.dataset import ParquetClickDataset
 from src.data.loader.base import Loader, RatingLoader
-from src.util.file import download, verify_file, extract, copy_file
+from src.util.file import copy_file, download, extract, verify_file
 
 logger = logging.getLogger(__name__)
 
