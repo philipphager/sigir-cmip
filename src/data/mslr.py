@@ -8,6 +8,8 @@ from src.data.dataset import RatingDataset
 from src.data.loader.base import Loader
 from src.data.simulation import Simulator
 from src.data.simulation.logging_policy import LoggingPolicy
+from src.util.cache import cache
+from src.util.hydra import ConfigWrapper
 
 
 class MSLR(pl.LightningDataModule):
@@ -19,6 +21,7 @@ class MSLR(pl.LightningDataModule):
         train_simulator: Simulator,
         val_simulator: Simulator,
         test_simulator: Simulator,
+        config_wrapper: ConfigWrapper,
         batch_size: int,
         shuffle: bool,
         num_workers: int,
@@ -32,6 +35,7 @@ class MSLR(pl.LightningDataModule):
         self.train_simulator = train_simulator
         self.val_simulator = val_simulator
         self.test_simulator = test_simulator
+        self.config = config_wrapper.config
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.num_workers = num_workers
@@ -41,34 +45,85 @@ class MSLR(pl.LightningDataModule):
         self.dataset = None
         self.train_policy_scores = None
         self.test_policy_scores = None
+        self.train_clicks = None
+        self.val_clicks = None
+        self.test_clicks = None
 
-    def prepare_data(self) -> None:
-        pass
+    def setup(self, stage: Optional[str] = None):
+        @cache(
+            self.config.base_dir,
+            "cache/train_policy",
+            [
+                self.config.data.rating_loader,
+                self.config.data.train_policy,
+                self.config.random_state,
+            ],
+        )
+        def train_policy_scores():
+            self.train_policy.fit(self.dataset)
+            return self.train_policy.predict(self.dataset)
 
-    def setup(self, stage: Optional[str] = None) -> None:
-        self.dataset = self.rating_loader.load("train")
+        @cache(
+            self.config.base_dir,
+            "cache/test_policy",
+            [
+                self.config.data.rating_loader,
+                self.config.data.test_policy,
+                self.config.random_state,
+            ],
+        )
+        def test_policy_scores():
+            self.test_policy.fit(self.dataset)
+            return self.test_policy.predict(self.dataset)
+
+        @cache(
+            self.config.base_dir,
+            "cache/train_clicks",
+            [
+                self.config.data.rating_loader,
+                self.config.data.train_policy,
+                self.config.data.train_simulator,
+                self.config.random_state,
+            ],
+        )
+        def simulate_train():
+            return self.train_simulator(self.dataset, self.train_policy_scores)
+
+        @cache(
+            self.config.base_dir,
+            "cache/val_clicks",
+            [
+                self.config.data.rating_loader,
+                self.config.data.train_policy,
+                self.config.data.val_simulator,
+                self.config.random_state,
+            ],
+        )
+        def simulate_val():
+            return self.val_simulator(self.dataset, self.train_policy_scores)
+
+        @cache(
+            self.config.base_dir,
+            "cache/test_clicks",
+            [
+                self.config.data.rating_loader,
+                self.config.data.test_policy,
+                self.config.data.test_simulator,
+                self.config.random_state,
+            ],
+        )
+        def simulate_test():
+            return self.test_simulator(self.dataset, self.test_policy_scores)
+
+        self.dataset = self.rating_loader.load(split="train")
+        self.train_policy_scores = train_policy_scores()
 
         if stage == TrainerFn.FITTING:
-            self.train_policy.fit(self.dataset)
-            self.train_policy_scores = self.train_policy.predict(self.dataset)
-
-            self.train_clicks = self.train_simulator(
-                self.dataset,
-                self.train_policy_scores,
-            )
-            self.val_clicks = self.val_simulator(
-                self.dataset,
-                self.train_policy_scores,
-            )
-
+            self.train_clicks = simulate_train()
+            self.val_clicks = simulate_val()
         elif stage == TrainerFn.TESTING:
-            self.test_policy.fit(self.dataset)
-            self.test_policy_scores = self.test_policy.predict(self.dataset)
-
-            self.test_clicks = self.test_simulator(
-                self.dataset,
-                self.test_policy_scores,
-            )
+            self.test_policy_scores = test_policy_scores()
+            self.test_clicks = simulate_test()
 
     def train_dataloader(self):
         return DataLoader(
