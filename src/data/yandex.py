@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 
 from src.data.dataset import ParquetClickDataset, RatingDataset
 from src.data.loader.base import Loader
+from src.util.hydra import ConfigWrapper
 
 
 class Yandex(pl.LightningDataModule):
@@ -13,6 +14,7 @@ class Yandex(pl.LightningDataModule):
         self,
         rating_loader: Loader[RatingDataset],
         click_loader: Loader[ParquetClickDataset],
+        config_wrapper: ConfigWrapper,
         train_val_test_split: Tuple[int, int, int],
         shuffle_clicks: bool,
         batch_size: int,
@@ -25,6 +27,7 @@ class Yandex(pl.LightningDataModule):
         super().__init__()
         self.rating_loader = rating_loader
         self.click_loader = click_loader
+        self.config = config_wrapper.config
         self.train_val_test_split = train_val_test_split
         self.shuffle_clicks = shuffle_clicks
         self.batch_size = batch_size
