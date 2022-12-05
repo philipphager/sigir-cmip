@@ -18,7 +18,7 @@ class CACM_minus(ClickModel):
         click_embedd_dim: int,
         inner_state_dim: int,
         lp_scores: torch.FloatTensor = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(loss, optimizer, learning_rate, lp_scores)
 
