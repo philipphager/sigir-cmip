@@ -1,0 +1,6 @@
+defaults:
+  - base
+
+_target_: src.data.loader.YandexRatingLoader
+name: yandex-ratings
+fold: 1

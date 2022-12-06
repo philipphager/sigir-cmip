@@ -15,6 +15,7 @@ class DBN(ClickModel):
         n_documents: int,
         estimate_gamma: bool,
         lp_scores: torch.FloatTensor = None,
+        **kwargs,
     ):
         super().__init__(loss, optimizer, learning_rate, lp_scores)
 

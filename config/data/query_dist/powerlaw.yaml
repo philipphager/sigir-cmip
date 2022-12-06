@@ -1,0 +1,2 @@
+_target_: src.data.simulation.query_dist.PowerLawQueryDist
+alpha: 1.12

@@ -15,6 +15,7 @@ class PBM(ClickModel):
         n_documents: int,
         n_results: int,
         lp_scores: torch.FloatTensor = None,
+        **kwargs,
     ):
         super().__init__(loss, optimizer, learning_rate, lp_scores)
 

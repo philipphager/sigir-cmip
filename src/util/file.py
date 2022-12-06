@@ -31,6 +31,11 @@ def download(url: str, out_path: Path) -> Path:
     return out_path
 
 
+def copy_file(in_path: Path, out_path: Path):
+    if in_path.exists() and not out_path.exists():
+        shutil.copy2(in_path, out_path)
+
+
 def verify_file(path: Path, checksum: str) -> bool:
     if not path.exists():
         raise FileNotFoundError(f"File not found: {path}")
@@ -74,6 +79,6 @@ def hash_config(config: DictConfig, datetime: str = None):
 
 
 def get_checkpoint_directory(config: DictConfig) -> Path:
-    checkpoint_dir = Path(config.data.base_dir) / "checkpoints"
+    checkpoint_dir = Path(config.base_dir) / "checkpoints"
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
     return checkpoint_dir / f"{config.filename}.ckpt"

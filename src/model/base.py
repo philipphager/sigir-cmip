@@ -1,11 +1,13 @@
 from abc import abstractmethod
-from typing import Tuple
+from typing import Optional, Tuple
 
 import pytorch_lightning as pl
 import torch
 from torch import nn
 
 from src.evaluation.metrics import get_click_metrics, get_relevance_metrics
+
+CLICK_DATASET_IDX = 0
 
 
 class ClickModel(pl.LightningModule):
@@ -14,7 +16,7 @@ class ClickModel(pl.LightningModule):
         loss: nn.Module,
         optimizer: str,
         learning_rate: float,
-        lp_scores: torch.FloatTensor = None,
+        lp_scores: Optional[torch.FloatTensor] = None,
     ):
         super().__init__()
         self.loss = loss
@@ -42,7 +44,7 @@ class ClickModel(pl.LightningModule):
         pass
 
     def training_step(self, batch, idx):
-        q, x, y, y_click, n = batch
+        q, x, y_click, n = batch
 
         y_predict_click, _ = self.forward(x, true_clicks=y_click)
         loss = self.loss(y_predict_click, y_click, n)
@@ -53,24 +55,23 @@ class ClickModel(pl.LightningModule):
 
         return loss
 
-    def validation_step(self, batch, idx):
-        q, x, y, y_click, n = batch
+    def validation_step(self, batch, idx, dl_idx: int):
+        if dl_idx == CLICK_DATASET_IDX:
+            q, x, y_click, n = batch
+            y_predict_click, y_predict = self.forward(x, true_clicks=y_click)
+            metrics = get_click_metrics(y_predict_click, y_click, n, "val_")
+            metrics["val_loss"] = self.loss(y_predict_click, y_click, n)
+        else:
+            query_ids, x, y, n = batch
+            y_predict = self.forward(x, click_pred=False)
+            metrics = get_relevance_metrics(y_predict, y, None, n, "val_")
 
-        y_predict_click, y_predict = self.forward(x, true_clicks=y_click)
-        loss = self.loss(y_predict_click, y_click, n)
-
-        click_metrics = get_click_metrics(y_predict_click, y_click, n, "val_")
-        relevance_metrics = get_relevance_metrics(y_predict, y, None, n, "val_")
-        metrics = click_metrics | relevance_metrics
-        metrics["val_loss"] = loss
         self.log_dict(metrics)
+        return metrics
 
-        return loss
-
-    def test_step(self, batch, idx, dl_idx):
-        if dl_idx == 0:
-            # Click dataset
-            q, x, y, y_click, n = batch
+    def test_step(self, batch, idx: int, dl_idx: int):
+        if dl_idx == CLICK_DATASET_IDX:
+            q, x, y_click, n = batch
             y_predict_click, y_predict = self.forward(x, true_clicks=y_click)
             loss = self.loss(y_predict_click, y_click, n)
 
@@ -78,7 +79,6 @@ class ClickModel(pl.LightningModule):
             metrics["test_loss"] = loss
             self.log_dict(metrics)
         else:
-            # Rating dataset
             query_ids, x, y, n = batch
             y_predict = self.forward(x, click_pred=False)
             y_lp = self.lp_scores[idx * len(query_ids) : (idx + 1) * len(query_ids)].to(

@@ -1,0 +1,19 @@
+defaults:
+  - base
+
+_target_: src.data.loader.MSLR10KLoader
+name: mslr-web10k
+fold: 1
+load_features: false
+
+pipeline:
+  _target_: src.data.loader.preprocessing.Pipeline
+  steps:
+    - _target_: src.data.loader.preprocessing.StratifiedTruncate
+      max_length: 100
+      random_state: "${random_state}"
+    - _target_: src.data.loader.preprocessing.DiscardShortQueries
+      min_length: "${data.n_results}"
+    - _target_: src.data.loader.preprocessing.Shuffle
+      random_state: "${random_state}"
+    - _target_: src.data.loader.preprocessing.GenerateDocumentIds
