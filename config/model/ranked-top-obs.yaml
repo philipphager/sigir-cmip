@@ -3,5 +3,5 @@ defaults:
 
 _target_: src.model.RankedTopObs
 optimizer: adam # ignored
-learning_rate: 0.01 # ignored
-n_results: "${train_simulator.rank_size}"
+learning_rate: 0.001 # ignored
+n_results: "${data.n_results}"

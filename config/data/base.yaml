@@ -1,9 +1,6 @@
 _target_: ???
-name: ???
-fold: ???
-load_features: ???
-base_dir: ???
-
-pipeline:
-  _target_: src.data.preprocessing.Pipeline
-  steps: [ ]
+batch_size: 256
+shuffle: True
+num_workers: 2
+persistent_workers: True
+n_results: 10 # Top n ranking for click datasets

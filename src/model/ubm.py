@@ -14,8 +14,10 @@ class UBM(ClickModel):
         learning_rate: float,
         n_documents: int,
         n_results: int,
+        lp_scores: torch.FloatTensor = None,
+        **kwargs,
     ):
-        super().__init__(loss, optimizer, learning_rate)
+        super().__init__(loss, optimizer, learning_rate, lp_scores)
 
         self.relevance = nn.Sequential(nn.Embedding(n_documents, 1), nn.Sigmoid())
         self.examination = nn.Sequential(nn.Embedding(n_results**2, 1), nn.Sigmoid())

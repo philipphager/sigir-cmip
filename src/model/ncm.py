@@ -19,8 +19,10 @@ class NCM(ClickModel):
         doc_embedd_dim: int,
         click_embedd_dim: int,
         inner_state_dim: int,
+        lp_scores: torch.FloatTensor = None,
+        **kwargs,
     ):
-        super().__init__(loss, optimizer, learning_rate)
+        super().__init__(loss, optimizer, learning_rate, lp_scores)
 
         self.query_embedd = nn.Embedding(n_queries, query_embedd_dim)
         self.doc_embedd = nn.Embedding(n_documents, doc_embedd_dim)

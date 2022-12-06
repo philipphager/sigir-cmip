@@ -17,8 +17,10 @@ class CACM_minus(ClickModel):
         pos_embedd_dim: int,
         click_embedd_dim: int,
         inner_state_dim: int,
+        lp_scores: torch.FloatTensor = None,
+        **kwargs,
     ):
-        super().__init__(loss, optimizer, learning_rate)
+        super().__init__(loss, optimizer, learning_rate, lp_scores)
 
         self.relevance = nn.Sequential(nn.Embedding(n_documents, 1), nn.Sigmoid())
         self.pos_embedd = nn.Embedding(n_results, pos_embedd_dim)

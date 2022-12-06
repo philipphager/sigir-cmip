@@ -7,8 +7,8 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 
-from src.util.cache import cache
-from src.util.file import hash_config, get_checkpoint_directory
+from src.util.file import get_checkpoint_directory, hash_config
+from src.util.hydra import ConfigWrapper
 
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"
@@ -23,31 +23,20 @@ def main(config: DictConfig):
     logger.info("Working directory : {}".format(os.getcwd()))
     seed_everything(config.random_state)
 
-    @cache(config.data.base_dir, "dataset", [config.data])
-    def load_dataset(config):
-        dataset = instantiate(config.data)
-        return dataset.load("train")
-
-    @cache(config.data.base_dir, "test_clicks", [config.data, config.test_simulator])
-    def simulate_test(config, dataset):
-        simulator = instantiate(config.test_simulator)
-        return simulator(dataset)
-
-    dataset = load_dataset(config)
-    n_documents = dataset.n.sum() + 1
-
-    test_clicks = simulate_test(config, dataset)
-    datamodule = instantiate(
-        config.datamodule,
-        datasets={"test_clicks": test_clicks, "test_rels": dataset},
-    )
+    dataset = instantiate(config.data, config_wrapper=ConfigWrapper(config))
+    dataset.setup("fit")
 
     checkpoint_path = get_checkpoint_directory(config)
     wandb_logger = instantiate(config.wandb_logger, id=hash_config(config))
-    trainer = instantiate(config.test_trainer, logger=wandb_logger)
-    model = instantiate(config.model, n_documents=n_documents)
 
-    trainer.test(model, datamodule, ckpt_path=checkpoint_path)
+    trainer = instantiate(config.test_trainer, logger=wandb_logger)
+    model = instantiate(
+        config.model,
+        n_documents=dataset.get_n_documents(),
+        lp_scores=dataset.get_train_policy_scores(),
+    )
+
+    trainer.test(model, dataset, ckpt_path=checkpoint_path)
 
 
 if __name__ == "__main__":

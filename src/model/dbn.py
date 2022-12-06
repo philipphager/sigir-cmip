@@ -14,8 +14,10 @@ class DBN(ClickModel):
         learning_rate: float,
         n_documents: int,
         estimate_gamma: bool,
+        lp_scores: torch.FloatTensor = None,
+        **kwargs,
     ):
-        super().__init__(loss, optimizer, learning_rate)
+        super().__init__(loss, optimizer, learning_rate, lp_scores)
 
         self.attractiveness = nn.Sequential(nn.Embedding(n_documents, 1), nn.Sigmoid())
         self.satisfaction = nn.Sequential(nn.Embedding(n_documents, 1), nn.Sigmoid())

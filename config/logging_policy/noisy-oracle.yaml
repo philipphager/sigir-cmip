@@ -1,2 +1,0 @@
-_target_: src.simulation.logging_policy.NoisyOraclePolicy
-noise: 0.5

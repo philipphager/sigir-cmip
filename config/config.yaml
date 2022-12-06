@@ -1,64 +1,28 @@
 defaults:
   - _self_
   - data: mslr10k
-  - logging_policy@train_policy: noisy-oracle
-  - logging_policy@test_policy: uniform
-  - user_model@train_user: graded-trust
-  - user_model@test_user: graded-trust
-  - query_dist@train_qdist: powerlaw
-  - query_dist@test_qdist: powerlaw
   - model: cacm-minus
   - ci: pointwise-ccit
   - env
-
-train_simulator:
-  _target_: src.simulation.Simulator
-  logging_policy: ${train_policy}
-  user_model: ${train_user}
-  query_dist: ${train_qdist}
-  n_sessions: 5_000_000
-  rank_size: 10
-
-val_simulator:
-  _target_: src.simulation.Simulator
-  logging_policy: ${train_policy}
-  user_model: ${train_user}
-  query_dist: ${train_qdist}
-  n_sessions: 1_000_000
-  rank_size: 10
-
-test_simulator:
-  _target_: src.simulation.Simulator
-  logging_policy: ${test_policy}
-  user_model: ${test_user}
-  query_dist: ${test_qdist}
-  n_sessions: 1_000_000
-  rank_size: 10
-
-datamodule:
-  _target_: src.data.ClickModelDataModule
-  datasets: ???
-  batch_size: 256
-  shuffle: True
-  num_workers: 2
-  persistent_workers: True
 
 train_val_trainer:
   _target_: pytorch_lightning.Trainer
   max_epochs: 10
   accelerator: auto
-  strategy: single_device # For DDP, pass 'train_val_trainer.strategy=ddp_find_unused_parameters_false' in cmd
+  devices: 1
+  #strategy: single_device # For DDP, pass 'train_val_trainer.strategy=ddp_find_unused_parameters_false' in cmd
   callbacks:
     - _target_: pytorch_lightning.callbacks.EarlyStopping
-      monitor: val_loss
+      monitor: val_loss/dataloader_idx_0
       patience: 1
     - _target_: pytorch_lightning.callbacks.RichProgressBar
     - _target_: pytorch_lightning.callbacks.ModelCheckpoint
-      dirpath: ${data.base_dir}checkpoints/
+      dirpath: ${base_dir}checkpoints/
       filename: ${filename}
-      monitor: val_loss
+      monitor: val_loss/dataloader_idx_0
       mode: min
   logger: ???
+#  logger: ???
 
 test_trainer:
   _target_: pytorch_lightning.Trainer
@@ -77,4 +41,5 @@ wandb_logger:
   id: ???
 
 random_state: 0
+base_dir: ???
 filename: "${hydra:runtime.choices.model}_${hydra:runtime.choices.logging_policy@train_policy}_${hydra:runtime.choices.user_model@train_user}_${hydra:runtime.choices.data}_seed-${random_state}"
