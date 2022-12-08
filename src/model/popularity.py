@@ -1,9 +1,10 @@
-from typing import Tuple
+from typing import List, Tuple
 
 import torch
 from torch import nn
 
 from ..data.dataset import ClickDatasetStats
+from ..evaluation.base import Metric
 from .base import StatsClickModel
 
 
@@ -16,11 +17,12 @@ class TopPop(StatsClickModel):
     def __init__(
         self,
         loss: nn.Module,
+        metrics: List[Metric],
         train_stats: ClickDatasetStats,
         lp_scores: torch.FloatTensor = None,
         **kwargs,
     ):
-        super().__init__(loss, train_stats, lp_scores)
+        super().__init__(loss, metrics, train_stats, lp_scores)
 
     def setup_parameters(self, train_stats: ClickDatasetStats):
         clicks = train_stats.document_rank_clicks
@@ -52,11 +54,12 @@ class TopPopObs(StatsClickModel):
     def __init__(
         self,
         loss: nn.Module,
+        metrics: List[Metric],
         train_stats: ClickDatasetStats,
         lp_scores: torch.FloatTensor = None,
         **kwargs,
     ):
-        super().__init__(loss, train_stats, lp_scores)
+        super().__init__(loss, metrics, train_stats, lp_scores)
 
     def setup_parameters(self, train_stats: ClickDatasetStats):
         clicks = train_stats.document_rank_clicks.to(self.device)
@@ -91,11 +94,12 @@ class RankedTopObs(StatsClickModel):
     def __init__(
         self,
         loss: nn.Module,
+        metrics: List[Metric],
         train_stats: ClickDatasetStats,
         lp_scores: torch.FloatTensor = None,
         **kwargs,
     ):
-        super().__init__(loss, train_stats, lp_scores)
+        super().__init__(loss, metrics, train_stats, lp_scores)
 
     def setup_parameters(self, train_stats: ClickDatasetStats):
         clicks = train_stats.document_rank_clicks.to(self.device)
