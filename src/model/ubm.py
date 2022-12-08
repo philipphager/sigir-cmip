@@ -3,10 +3,10 @@ from typing import Tuple
 import torch
 from torch import nn
 
-from .base import ClickModel
+from .base import NeuralClickModel
 
 
-class UBM(ClickModel):
+class UBM(NeuralClickModel):
     def __init__(
         self,
         loss: nn.Module,
