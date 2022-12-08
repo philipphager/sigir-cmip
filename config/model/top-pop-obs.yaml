@@ -2,5 +2,3 @@ defaults:
   - base
 
 _target_: src.model.TopPopObs
-optimizer: adam # ignored
-learning_rate: 0.001 # ignored
