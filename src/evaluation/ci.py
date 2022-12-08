@@ -21,8 +21,13 @@ class PointwiseClassifierCITest:
         y_predict: torch.Tensor,
         y_logging_policy: torch.Tensor,
         y_true: torch.LongTensor,
+        n: torch.LongTensor,
     ):
+        n_batch, n_results = y_true.shape
+        mask = self.padding_mask(n, n_batch, n_results)
         dataset = self.hstack(y_predict, y_logging_policy, y_true)
+        dataset = dataset[mask.ravel()]
+
         split1, split2, split3 = self.random_split(dataset, splits=3)
         split2 = self.nearest_neighbor_bootstrap(split2, split3)
 
@@ -38,6 +43,11 @@ class PointwiseClassifierCITest:
         is_independent = loss > 0.5 - threshold
 
         return is_independent
+
+    @staticmethod
+    def padding_mask(n, n_batch, n_results):
+        mask = torch.arange(n_results).repeat(n_batch, 1).type_as(n)
+        return mask < n.unsqueeze(-1)
 
     @staticmethod
     def hstack(
