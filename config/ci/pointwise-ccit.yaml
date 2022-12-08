@@ -1,3 +1,0 @@
-_target_: src.evaluation.ci.PointwiseClassifierCITest
-classifier:
-  _target_: lightgbm.LGBMClassifier
