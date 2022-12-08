@@ -45,7 +45,7 @@ class PointwiseClassifierCITest(PolicyMetric):
         threshold = self.get_threshold(len(test))
         is_independent = loss > 0.5 - threshold
 
-        return {f"{self.name}": is_independent}
+        return {self.name: is_independent}
 
     @staticmethod
     def padding_mask(n, n_batch, n_results):
