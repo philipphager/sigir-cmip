@@ -1,6 +1,7 @@
-from typing import Tuple
+from typing import List, Tuple
 
 import torch
+from prometheus_client import Metric
 from torch import nn
 
 from .base import NeuralClickModel
@@ -17,10 +18,11 @@ class CACM_minus(NeuralClickModel):
         pos_embedd_dim: int,
         click_embedd_dim: int,
         inner_state_dim: int,
+        metrics: List[Metric],
         lp_scores: torch.FloatTensor = None,
         **kwargs,
     ):
-        super().__init__(loss, optimizer, learning_rate, lp_scores)
+        super().__init__(loss, optimizer, learning_rate, metrics, lp_scores)
 
         self.relevance = nn.Sequential(nn.Embedding(n_documents, 1), nn.Sigmoid())
         self.pos_embedd = nn.Embedding(n_results, pos_embedd_dim)

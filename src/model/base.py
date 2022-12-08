@@ -1,17 +1,27 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import torch
 from pytorch_lightning import LightningModule
 from torch import nn
 
 from src.data.dataset import ClickDatasetStats
-from src.evaluation.metrics import get_click_metrics, get_relevance_metrics
+from src.evaluation.base import ClickMetric, Metric, PolicyMetric, RelevanceMetric
+from src.evaluation.util import join_metrics
 
 CLICK_DATASET_IDX = 0
 
 
 class ClickModel(LightningModule, ABC):
+    def __init__(
+        self,
+        metrics: List[Metric],
+        lp_scores: Optional[torch.FloatTensor],
+    ):
+        super().__init__()
+        self.metrics = metrics
+        self.lp_scores = lp_scores
+
     @abstractmethod
     def forward(
         self,
@@ -22,60 +32,73 @@ class ClickModel(LightningModule, ABC):
         pass
 
     def validation_step(self, batch, idx, dl_idx: int):
+        metrics = []
+
         if dl_idx == CLICK_DATASET_IDX:
             q, x, y_click, n = batch
             y_predict_click, y_predict = self.forward(x, true_clicks=y_click)
-            metrics = get_click_metrics(y_predict_click, y_click, n, "val_")
-            metrics["val_loss"] = self.loss(y_predict_click, y_click, n)
+
+            loss = self.loss(y_predict_click, y_click, n)
+            metrics += [{"loss": loss}]
+            metrics += self._get_click_metrics(y_predict_click, y_click, n)
         else:
             query_ids, x, y, n = batch
             y_predict = self.forward(x, click_pred=False)
-            metrics = get_relevance_metrics(y_predict, y, None, n, "val_")
+            metrics += self._get_relevance_metrics(y_predict, y, n)
 
+        metrics = join_metrics(metrics, stage="val")
         self.log_dict(metrics)
+
         return metrics
 
     def test_step(self, batch, idx: int, dl_idx: int):
+        metrics = []
+
         if dl_idx == CLICK_DATASET_IDX:
             q, x, y_click, n = batch
             y_predict_click, y_predict = self.forward(x, true_clicks=y_click)
             loss = self.loss(y_predict_click, y_click, n)
 
-            metrics = get_click_metrics(y_predict_click, y_click, n, "test_clicks_")
-            metrics["test_loss"] = loss
-            self.log_dict(metrics)
+            metrics += [{"loss": loss}]
+            metrics += self._get_click_metrics(y_predict_click, y_click, n)
         else:
             query_ids, x, y, n = batch
             y_predict = self.forward(x, click_pred=False)
-            y_lp = self.lp_scores[idx * len(query_ids) : (idx + 1) * len(query_ids)].to(
-                self.device
-            )
-            metrics = get_relevance_metrics(y_predict, y, y_lp, n, "test_rels_")
-            self.log_dict(
-                {
-                    key: val
-                    for key, val in metrics.items()
-                    if key not in ["test_rels_agreement_ratio", "n_pairs"]
-                }
-            )
+
+            y_lp = self.lp_scores.to(self.device)
+            metrics += self._get_relevance_metrics(y_predict, y, n)
+
+            if self.lp_scores is not None:
+                # FIXME: Remove null check when Yandex has a logging policy.
+                metrics += self._get_policy_metrics(y_predict, y_lp, y, n)
+
+        metrics = join_metrics(metrics, stage="test")
+        self.log_dict(metrics)
 
         return metrics
 
-    def test_epoch_end(self, outputs):
-        # Weighted sum to account for different number of pairs in different batches
-        agreement_ratios = torch.stack(
-            [metrics["test_rels_agreement_ratio"] for metrics in outputs[1]]
-        )
-        n_pairs = torch.stack(
-            [
-                torch.tensor(metrics["n_pairs"], device=self.device)
-                for metrics in outputs[1]
-            ]
-        )
-        test_agreement_ratio = torch.sum(agreement_ratios * n_pairs) / torch.sum(
-            n_pairs
-        )
-        self.log("test_rels_agreement_ratio", test_agreement_ratio)
+    def _get_click_metrics(self, y_predict_click, y_click, n) -> List[Dict[str, float]]:
+        return [
+            metric(y_predict_click, y_click, n)
+            for metric in self.metrics
+            if isinstance(metric, ClickMetric)
+        ]
+
+    def _get_relevance_metrics(self, y_predict, y_true, n) -> List[Dict[str, float]]:
+        return [
+            metric(y_predict, y_true, n)
+            for metric in self.metrics
+            if isinstance(metric, RelevanceMetric)
+        ]
+
+    def _get_policy_metrics(
+        self, y_predict, y_logging_policy, y, n
+    ) -> List[Dict[str, float]]:
+        return [
+            metric(y_predict, y_logging_policy, y, n)
+            for metric in self.metrics
+            if isinstance(metric, PolicyMetric)
+        ]
 
 
 class NeuralClickModel(ClickModel):
@@ -84,9 +107,10 @@ class NeuralClickModel(ClickModel):
         loss: nn.Module,
         optimizer: str,
         learning_rate: float,
+        metrics: List[Metric],
         lp_scores: Optional[torch.FloatTensor] = None,
     ):
-        super().__init__()
+        super().__init__(metrics, lp_scores)
         self.loss = loss
         self.optimizer = optimizer
         self.learning_rate = learning_rate
@@ -108,8 +132,9 @@ class NeuralClickModel(ClickModel):
         y_predict_click, _ = self.forward(x, true_clicks=y_click)
         loss = self.loss(y_predict_click, y_click, n)
 
-        metrics = get_click_metrics(y_predict_click, y_click, n, "train_")
-        metrics["train_loss"] = loss
+        metrics = [{"loss": loss}]
+        metrics += self._get_click_metrics(y_predict_click, y_click, n)
+        metrics = join_metrics(metrics, "train")
         self.log_dict(metrics)
 
         return loss
@@ -124,10 +149,11 @@ class StatsClickModel(ClickModel, ABC):
     def __init__(
         self,
         loss: nn.Module,
+        metrics: List[Metric],
         train_stats: ClickDatasetStats,
         lp_scores: Optional[torch.FloatTensor] = None,
     ):
-        super().__init__()
+        super().__init__(metrics, lp_scores)
         self.loss = loss
         self.lp_scores = lp_scores
 

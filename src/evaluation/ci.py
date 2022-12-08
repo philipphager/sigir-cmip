@@ -2,8 +2,10 @@ from typing import Any
 
 import torch
 
+from src.evaluation.base import PolicyMetric
 
-class PointwiseClassifierCITest:
+
+class PointwiseClassifierCITest(PolicyMetric):
     """
     Classifier Conditional Independence Test (CCIT) from [Sen et al. 2017]
 
@@ -13,7 +15,8 @@ class PointwiseClassifierCITest:
     data. If this can be done better than chance, the original data is not independent.
     """
 
-    def __init__(self, classifier: Any):
+    def __init__(self, name: str, classifier: Any):
+        self.name = name
         self.classifier = classifier
 
     def __call__(
@@ -42,7 +45,7 @@ class PointwiseClassifierCITest:
         threshold = self.get_threshold(len(test))
         is_independent = loss > 0.5 - threshold
 
-        return is_independent
+        return {self.name: is_independent}
 
     @staticmethod
     def padding_mask(n, n_batch, n_results):

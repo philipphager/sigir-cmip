@@ -1,8 +1,9 @@
-from typing import Tuple
+from typing import List, Tuple
 
 import torch
 from torch import nn
 
+from ..evaluation.base import Metric
 from .base import NeuralClickModel
 
 
@@ -14,10 +15,11 @@ class DBN(NeuralClickModel):
         learning_rate: float,
         n_documents: int,
         estimate_gamma: bool,
+        metrics: List[Metric],
         lp_scores: torch.FloatTensor = None,
         **kwargs,
     ):
-        super().__init__(loss, optimizer, learning_rate, lp_scores)
+        super().__init__(loss, optimizer, learning_rate, metrics, lp_scores)
 
         self.attractiveness = nn.Sequential(nn.Embedding(n_documents, 1), nn.Sigmoid())
         self.satisfaction = nn.Sequential(nn.Embedding(n_documents, 1), nn.Sigmoid())
