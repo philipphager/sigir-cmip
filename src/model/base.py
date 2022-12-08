@@ -130,7 +130,6 @@ class StatsClickModel(ClickModel, ABC):
         super().__init__()
         self.loss = loss
         self.lp_scores = lp_scores
-        self.train_stats = train_stats
 
         self.setup_parameters(train_stats)
         self.freeze()
