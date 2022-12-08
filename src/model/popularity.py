@@ -4,10 +4,10 @@ import torch
 from torch import nn
 
 from ..data.dataset import ClickDatasetStats
-from .base import ClickModel
+from .base import StatsClickModel
 
 
-class TopPop(ClickModel):
+class TopPop(StatsClickModel):
     """
     TopPop model as in [Deffayet 2022]
     Document relevance is the number of clicks per document, no CTR prediction.
@@ -16,31 +16,15 @@ class TopPop(ClickModel):
     def __init__(
         self,
         loss: nn.Module,
-        optimizer: str,
-        learning_rate: float,
-        n_documents: int,
         train_stats: ClickDatasetStats,
         lp_scores: torch.FloatTensor = None,
+        **kwargs,
     ):
-        super().__init__(loss, optimizer, learning_rate, lp_scores)
-        # Turn off optimization for count-based click model
-        self.automatic_optimization = False
-        self.n_documents = n_documents
-        self.train_stats = train_stats
-        self.clicks = nn.Parameter(
-            torch.zeros(n_documents, dtype=torch.float),
-            requires_grad=False,
-        )
+        super().__init__(loss, train_stats, lp_scores)
 
-    def on_train_start(self):
-        # Sum clicks and impressions per document over all ranks
-        clicks = self.train_stats.document_rank_clicks
-        self.clicks += clicks.sum(dim=1).to(self.device)
-
-    def training_step(self, batch, idx):
-        # Update global_step counter for checkpointing
-        self.optimizers().step()
-        return super().training_step(batch, idx)
+    def setup_parameters(self, train_stats: ClickDatasetStats):
+        clicks = train_stats.document_rank_clicks
+        self.clicks = nn.Parameter(clicks.sum(dim=1))
 
     def forward(
         self,
@@ -58,7 +42,7 @@ class TopPop(ClickModel):
             return relevance
 
 
-class TopPopObs(ClickModel):
+class TopPopObs(StatsClickModel):
     """
     TopPopObs model as in [Deffayet 2022]
     Document relevance is the number of clicks times the number of impressions per
@@ -68,38 +52,18 @@ class TopPopObs(ClickModel):
     def __init__(
         self,
         loss: nn.Module,
-        optimizer: str,
-        learning_rate: float,
-        n_documents: int,
         train_stats: ClickDatasetStats,
         lp_scores: torch.FloatTensor = None,
+        **kwargs,
     ):
-        super().__init__(loss, optimizer, learning_rate, lp_scores)
-        # Turn off optimization for count-based click model
-        self.automatic_optimization = False
-        self.n_documents = n_documents
-        self.train_stats = train_stats
-        self.clicks = nn.Parameter(
-            torch.zeros(n_documents, dtype=torch.float),
-            requires_grad=False,
-        )
-        self.impressions = nn.Parameter(
-            torch.zeros(n_documents, dtype=torch.float),
-            requires_grad=False,
-        )
+        super().__init__(loss, train_stats, lp_scores)
 
-    def on_train_start(self):
-        # Sum clicks and impressions per document over all ranks
-        clicks = self.train_stats.document_rank_clicks
-        self.clicks += clicks.sum(dim=1).to(self.device)
+    def setup_parameters(self, train_stats: ClickDatasetStats):
+        clicks = train_stats.document_rank_clicks.to(self.device)
+        self.clicks = nn.Parameter(clicks.sum(dim=1))
 
-        impressions = self.train_stats.document_rank_impressions
-        self.impressions += impressions.sum(dim=1).to(self.device)
-
-    def training_step(self, batch, idx):
-        # Update global_step counter for checkpointing
-        self.optimizers().step()
-        return super().training_step(batch, idx)
+        impressions = train_stats.document_rank_impressions.to(self.device)
+        self.impressions = nn.Parameter(impressions.sum(dim=1))
 
     def forward(
         self,
@@ -117,7 +81,7 @@ class TopPopObs(ClickModel):
             return relevance
 
 
-class RankedTopObs(ClickModel):
+class RankedTopObs(StatsClickModel):
     """
     WeightedTopObs model as in [Deffayet 2022]
     Document relevance is the rank CTR times the number of impressions per document and
@@ -127,51 +91,22 @@ class RankedTopObs(ClickModel):
     def __init__(
         self,
         loss: nn.Module,
-        optimizer: str,
-        learning_rate: float,
-        n_documents: int,
-        n_results: int,
         train_stats: ClickDatasetStats,
         lp_scores: torch.FloatTensor = None,
+        **kwargs,
     ):
-        super().__init__(loss, optimizer, learning_rate, lp_scores)
-        # Turn off optimization for count-based click model
-        self.automatic_optimization = False
-        self.n_documents = n_documents
-        self.n_result = n_results
-        self.train_stats = train_stats
-        self.clicks = nn.Parameter(
-            torch.zeros((n_documents, n_results), dtype=torch.float),
-            requires_grad=False,
-        )
-        self.impressions = nn.Parameter(
-            torch.zeros((n_documents, n_results), dtype=torch.float),
-            requires_grad=False,
-        )
-        self.rank_clicks = nn.Parameter(
-            torch.zeros(n_results),
-            requires_grad=False,
-        )
-        self.rank_impressions = nn.Parameter(
-            torch.zeros(n_results),
-            requires_grad=False,
-        )
+        super().__init__(loss, train_stats, lp_scores)
 
-    def on_train_start(self):
-        clicks = self.train_stats.document_rank_clicks
-        clicks = clicks.to(self.device)
-        impressions = self.train_stats.document_rank_impressions
-        impressions = impressions.to(self.device)
+    def setup_parameters(self, train_stats: ClickDatasetStats):
+        clicks = train_stats.document_rank_clicks.to(self.device)
+        impressions = train_stats.document_rank_impressions.to(self.device)
 
-        self.clicks += clicks
-        self.impressions += impressions
-        self.rank_clicks += clicks.sum(dim=0)
-        self.rank_impressions += impressions.sum(dim=0)
+        rank_clicks = clicks.sum(dim=0)
+        rank_impressions = impressions.sum(dim=0)
+        rank_ctr = rank_clicks / rank_impressions.clip(min=1)
 
-    def training_step(self, batch, idx):
-        # Update global_step counter for checkpointing
-        self.optimizers().step()
-        return super().training_step(batch, idx)
+        self.impressions = nn.Parameter(impressions)
+        self.rank_ctr = nn.Parameter(rank_ctr)
 
     def forward(
         self,
@@ -181,17 +116,14 @@ class RankedTopObs(ClickModel):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         n_batch, n_results = x.shape
 
-        # Compute ctr per rank
-        rank_ctr = self.rank_clicks / self.rank_impressions
-
         # Weight impressions per document by rank ctr
         x = x.reshape(-1)
-        relevance = (rank_ctr * self.impressions[x]).sum(dim=1)
+        relevance = (self.rank_ctr * self.impressions[x]).sum(dim=1)
         relevance = relevance.reshape(n_batch, n_results)
 
         if click_pred:
             # Dummy click prediction
-            y_predict = torch.full(relevance.shape, 0.5, device=x.device)
+            y_predict = torch.full((n_batch, n_results), 0.5, device=x.device)
             return y_predict, relevance
         else:
             return relevance
