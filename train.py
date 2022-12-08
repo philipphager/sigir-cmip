@@ -7,6 +7,7 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 
+from src.model.base import NeuralClickModel, StatsClickModel
 from src.util.file import get_checkpoint_directory, hash_config
 from src.util.hydra import ConfigWrapper
 
@@ -41,7 +42,11 @@ def main(config: DictConfig):
         train_stats=dataset.get_train_stats(),
         lp_scores=dataset.get_train_policy_scores(),
     )
-    trainer.fit(model, dataset)
+
+    if isinstance(model, NeuralClickModel):
+        trainer.fit(model, dataset)
+    elif isinstance(model, StatsClickModel):
+        trainer.validate(model, dataset)
 
 
 if __name__ == "__main__":
