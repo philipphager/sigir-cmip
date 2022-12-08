@@ -14,9 +14,6 @@ metrics:
   - _target_: src.evaluation.AgreementRatio
     name: agreement_ratio
     disjoint_pairs: False
-  - _target_: src.evaluation.AgreementRatio
-    name: disjoint_agreement_ratio
-    disjoint_pairs: True
   - _target_: src.evaluation.PointwiseClassifierCITest
     name: pointwise_ci
     classifier:
