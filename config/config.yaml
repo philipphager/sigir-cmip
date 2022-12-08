@@ -2,6 +2,7 @@ defaults:
   - _self_
   - data: mslr10k
   - model: cacm-minus
+  - ci: pointwise-ccit
   - env
 
 train_val_trainer:
