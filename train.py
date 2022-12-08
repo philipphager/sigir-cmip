@@ -47,6 +47,7 @@ def main(config: DictConfig):
         trainer.fit(model, dataset)
     elif isinstance(model, StatsClickModel):
         trainer.validate(model, dataset)
+        trainer.save_checkpoint(checkpoint_path)
 
 
 if __name__ == "__main__":
