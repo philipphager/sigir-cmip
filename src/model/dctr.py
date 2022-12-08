@@ -86,7 +86,7 @@ class RankedDCTR(StatsClickModel):
 
     def setup_parameters(self, train_stats: ClickDatasetStats):
         clicks = train_stats.document_rank_clicks.to(self.device)
-        impressions = self.train_stats.document_rank_impressions.to(self.device)
+        impressions = train_stats.document_rank_impressions.to(self.device)
 
         self.clicks = nn.Parameter(clicks)
         self.impressions = nn.Parameter(impressions)
