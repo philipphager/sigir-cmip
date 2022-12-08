@@ -46,7 +46,8 @@ class NDCG(RelevanceMetric):
         idcg = torch.maximum(torch.cumsum(idcg, dim=1), torch.ones_like(idcg))
         rank_ndcg = (dcg / idcg).mean(dim=0)
 
-        return {f"{self.name}@{k}": rank_ndcg[k - 1] for k in self.ranks}
+        names = [f"{self.name}@{k}" if k != 0 else self.name for k in self.ranks]
+        return {n: rank_ndcg[k - 1] for n, k in zip(names, self.ranks)}
 
 
 class Perplexity(ClickMetric):
@@ -90,7 +91,8 @@ class Perplexity(ClickMetric):
         mean_ppl = rank_ppl.mean()
         ppl = torch.cat([mean_ppl.unsqueeze(0), rank_ppl])
 
-        return {f"{self.name}@{k}": ppl[i] for i, k in enumerate(self.ranks)}
+        names = [f"{self.name}@{k}" if k != 0 else self.name for k in self.ranks]
+        return {n: ppl[i] for i, (n, k) in enumerate(zip(names, self.ranks))}
 
 
 class AgreementRatio(PolicyMetric):
