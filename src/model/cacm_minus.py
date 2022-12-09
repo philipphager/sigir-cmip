@@ -1,9 +1,9 @@
 from typing import List, Tuple
 
 import torch
-from prometheus_client import Metric
 from torch import nn
 
+from ..evaluation.base import Metric
 from .base import NeuralClickModel
 
 
