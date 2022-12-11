@@ -55,8 +55,8 @@ class FeatureRatingDataset(Dataset):
         self.query_id = torch.tensor(df["query_id"])
         self.n = torch.tensor(df["doc_ids"].map(len))
         self.x = self.pad(df["doc_ids"])
-        self.y = self.pad(df["relevance"])
         self.features = self.pad(df["features"].map(list))
+        self.y = self.pad(df["relevance"])
 
     @staticmethod
     def pad(column: List[List[int]]):
