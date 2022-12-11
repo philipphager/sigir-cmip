@@ -3,6 +3,7 @@ import logging
 import shutil
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import wget
 from omegaconf import DictConfig
@@ -61,8 +62,8 @@ def read_svmlight_file(path: Path, load_features: bool) -> pd.DataFrame:
     X, y, queries = load_svmlight_file(str(path), query_id=True)
 
     if load_features:
-        df = pd.DataFrame(X.todense())
-        df.columns = df.columns.map(str)
+        features = np.squeeze(np.asarray(X.todense(), dtype=np.float))
+        df = pd.DataFrame({"features": list(features)})
     else:
         df = pd.DataFrame()
         logging.info("Omitting doc features from dataset")
