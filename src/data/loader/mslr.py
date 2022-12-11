@@ -17,13 +17,12 @@ class MSLR10KLoader(RatingLoader):
         self,
         name: str,
         fold: int,
-        load_features: bool,
         pipeline: Pipeline,
         base_dir: str,
     ):
-        super().__init__(name, fold, base_dir, load_features, pipeline)
+        super().__init__(name, fold, base_dir, pipeline)
 
-    def _parse(self, split: str, load_features: bool) -> pd.DataFrame:
+    def _parse(self, split: str) -> pd.DataFrame:
         zip_path = download(self.url, self.download_directory / self.zip_file)
         verify_file(zip_path, self.checksum)
         dataset_path = extract(zip_path, self.dataset_directory / self.file)
@@ -31,7 +30,7 @@ class MSLR10KLoader(RatingLoader):
         split = "vali" if split == "val" else split
         path = dataset_path / f"Fold{self.fold}" / f"{split}.txt"
 
-        return read_svmlight_file(path, load_features)
+        return read_svmlight_file(path, load_features=True)
 
     @property
     def folds(self) -> List[int]:
@@ -52,11 +51,10 @@ class MSLR30KLoader(RatingLoader):
         self,
         name: str,
         fold: int,
-        load_features: bool,
         pipeline: Pipeline,
         base_dir: str,
     ):
-        super().__init__(name, fold, base_dir, load_features, pipeline)
+        super().__init__(name, fold, base_dir, pipeline)
 
     def _parse(self, split: str, load_features: bool) -> pd.DataFrame:
         zip_path = download(self.url, self.download_directory / self.zip_file)

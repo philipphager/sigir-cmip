@@ -5,7 +5,7 @@ from typing import Generic, List, Optional, TypeVar, Union
 
 import pandas as pd
 
-from src.data.dataset import RatingDataset
+from src.data.dataset import FeatureRatingDataset, RatingDataset
 from src.data.loader.preprocessing import Pipeline
 
 logger = logging.getLogger(__name__)
@@ -61,17 +61,15 @@ class RatingLoader(Loader[RatingDataset]):
         name: str,
         fold: int,
         base_dir: str,
-        load_features: Optional[bool] = False,
         pipeline: Optional[Pipeline] = None,
     ):
         super(RatingLoader, self).__init__(base_dir)
         self.name = name
         self.fold = fold
-        self.load_features = load_features
         self.pipeline = pipeline
         self.base_dir = Path(base_dir).expanduser()
 
-    def load(self, split: str) -> RatingDataset:
+    def load(self, split: str, load_features: bool = False) -> RatingDataset:
         assert self.fold in self.folds, f"Fold must one of {self.folds}"
         assert split in self.splits, f"Split must one of {self.splits}"
         logger.info(f"Loading {self.name}, fold: {self.fold}, split: {split}")
@@ -79,14 +77,14 @@ class RatingLoader(Loader[RatingDataset]):
         path = self.output_directory / f"{self.name}-{self.fold}-{split}.parquet"
 
         if not path.exists():
-            df = self._parse(split, self.load_features)
+            df = self._parse(split)
 
             if self.pipeline is not None:
                 df = self.pipeline(df)
 
             df.to_parquet(path)
 
-        return RatingDataset(path)
+        return FeatureRatingDataset(path) if load_features else RatingDataset(path)
 
     @property
     @abstractmethod
@@ -99,5 +97,5 @@ class RatingLoader(Loader[RatingDataset]):
         pass
 
     @abstractmethod
-    def _parse(self, split: str, load_features: bool) -> pd.DataFrame:
+    def _parse(self, split: str) -> pd.DataFrame:
         pass

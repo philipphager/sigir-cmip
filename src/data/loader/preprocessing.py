@@ -27,10 +27,20 @@ class Pipeline:
         for step in self.steps:
             df = step(df)
 
+        return self._aggregate_query(df)
+
+    @staticmethod
+    def _aggregate_query(df: pd.DataFrame) -> pd.DataFrame:
+        agg = {"doc_id": list, "y": list}
+
+        if "features" in df.columns:
+            agg["features"] = list
+
         return (
             df.groupby("query_id")
-            .agg(doc_ids=("doc_id", list), relevance=("y", list))
+            .aggregate(agg)
             .reset_index()
+            .rename(columns={"doc_id": "doc_ids", "y": "relevance"})
         )
 
 

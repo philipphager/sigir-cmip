@@ -24,7 +24,7 @@ class YandexRatingLoader(RatingLoader):
     ):
         super().__init__(name, fold, base_dir)
 
-    def _parse(self, split: str, load_features: bool) -> pd.DataFrame:
+    def _parse(self, split: str) -> pd.DataFrame:
         zip_path = download(self.url, self.download_directory / self.zip_file)
         verify_file(zip_path, self.checksum)
         dataset_path = extract(zip_path, self.dataset_directory / self.file)

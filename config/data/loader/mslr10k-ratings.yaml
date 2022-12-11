@@ -4,7 +4,6 @@ defaults:
 _target_: src.data.loader.MSLR10KLoader
 name: mslr-web10k
 fold: 1
-load_features: false
 
 pipeline:
   _target_: src.data.loader.preprocessing.Pipeline
