@@ -64,7 +64,7 @@ class LightGBMRanker(LoggingPolicy):
         query_ids, doc_ids, x, y, n = dataset[:]
         n_batch, n_results, n_features = x.shape
 
-        # (n_queries, n_results, n_features) -> (n_queries * n_results, n_features)
+        # (n_batch, n_results, n_features) -> (n_batch * n_results, n_features)
         x = x.reshape(-1, n_features).numpy()
         y_predict = torch.from_numpy(self.model.predict(x))
         y_predict = y_predict.reshape(n_batch, n_results)
@@ -79,7 +79,7 @@ class LightGBMRanker(LoggingPolicy):
         query_ids, doc_ids, x, y, n = dataset[:]
         n_batch, n_results, n_features = x.shape
 
-        # (n_queries, n_results) -> (n_queries * n), ignoring padded values
+        # (n_batch, n_results, n_features) -> (n_batch * n_results, n_features)
         mask = torch.arange(n_results).repeat(n_batch, 1)
         mask = mask < n.unsqueeze(-1)
         x = x[mask].numpy()
