@@ -72,7 +72,10 @@ class RatingLoader(Loader[RatingDataset]):
     def load(self, split: str, load_features: bool = False) -> RatingDataset:
         assert self.fold in self.folds, f"Fold must one of {self.folds}"
         assert split in self.splits, f"Split must one of {self.splits}"
-        logger.info(f"Loading {self.name}, fold: {self.fold}, split: {split}")
+        logger.info(
+            f"Loading {self.name}, fold: {self.fold}, "
+            f"split: {split}, features: {load_features}"
+        )
 
         path = self.output_directory / f"{self.name}-{self.fold}-{split}.parquet"
 
