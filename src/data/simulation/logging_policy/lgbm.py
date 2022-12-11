@@ -3,7 +3,7 @@ from typing import Optional
 import torch
 from lightgbm import LGBMRanker, early_stopping
 
-from src.data.dataset import RatingDataset
+from src.data.dataset import FeatureRatingDataset
 from src.data.simulation.logging_policy.base import LoggingPolicy
 from src.model.loss import mask_padding
 
@@ -33,7 +33,9 @@ class LightGBMRanker(LoggingPolicy):
             random_state=random_state,
         )
 
-    def fit(self, train: RatingDataset, val: Optional[RatingDataset] = None):
+    def fit(
+        self, train: FeatureRatingDataset, val: Optional[FeatureRatingDataset] = None
+    ):
         x_train, y_train, n_train = self.to_lightgbm(train)
         eval_set = None
         eval_group = None
@@ -56,28 +58,28 @@ class LightGBMRanker(LoggingPolicy):
             eval_set=eval_set,
             eval_group=eval_group,
             callbacks=callbacks,
-            categorical_feature=[0],
         )
 
-    def predict(self, dataset: RatingDataset) -> torch.Tensor:
-        query_ids, x, y, n = dataset[:]
-        n_batch, n_results = x.shape
+    def predict(self, dataset: FeatureRatingDataset) -> torch.Tensor:
+        query_ids, doc_ids, x, y, n = dataset[:]
+        n_batch, n_results, n_features = x.shape
 
-        x = x.reshape(-1, 1).numpy()
+        # (n_queries, n_results, n_features) -> (n_queries * n_results, n_features)
+        x = x.reshape(-1, n_features).numpy()
         y_predict = torch.from_numpy(self.model.predict(x))
         y_predict = y_predict.reshape(n_batch, n_results)
 
         return mask_padding(y_predict, n, fill=-torch.inf)
 
     @staticmethod
-    def to_lightgbm(dataset: RatingDataset):
-        query_ids, x, y, n = dataset[:]
-        n_batch, n_results = x.shape
+    def to_lightgbm(dataset: FeatureRatingDataset):
+        query_ids, doc_ids, x, y, n = dataset[:]
+        n_batch, n_results, n_features = x.shape
 
         # (n_queries, n_results) -> (n_queries * n), ignoring padded values
         mask = torch.arange(n_results).repeat(n_batch, 1)
         mask = mask < n.unsqueeze(-1)
-        x = x[mask].unsqueeze(-1).numpy()
+        x = x[mask].numpy()
         y = y[mask].numpy()
         n = n.numpy()
 
