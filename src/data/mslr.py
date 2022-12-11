@@ -65,8 +65,12 @@ class MSLR(pl.LightningDataModule):
             ],
         )
         def train_policy_scores():
-            self.train_policy.fit(self.dataset)
-            return self.train_policy.predict(self.dataset)
+            dataset = self.rating_loader.load(
+                split="train",
+                load_features=self.train_policy.requires_features(),
+            )
+            self.train_policy.fit(dataset)
+            return self.train_policy.predict(dataset)
 
         @cache(
             self.config.base_dir,
@@ -78,8 +82,12 @@ class MSLR(pl.LightningDataModule):
             ],
         )
         def test_policy_scores():
-            self.test_policy.fit(self.dataset)
-            return self.test_policy.predict(self.dataset)
+            dataset = self.rating_loader.load(
+                split="train",
+                load_features=self.test_policy.requires_features(),
+            )
+            self.test_policy.fit(dataset)
+            return self.test_policy.predict(dataset)
 
         @cache(
             self.config.base_dir,

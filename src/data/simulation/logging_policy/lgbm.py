@@ -71,6 +71,9 @@ class LightGBMRanker(LoggingPolicy):
 
         return mask_padding(y_predict, n, fill=-torch.inf)
 
+    def requires_features(self) -> bool:
+        return True
+
     @staticmethod
     def to_lightgbm(dataset: FeatureRatingDataset):
         query_ids, doc_ids, x, y, n = dataset[:]
