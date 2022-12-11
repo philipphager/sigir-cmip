@@ -62,7 +62,7 @@ def read_svmlight_file(path: Path, load_features: bool) -> pd.DataFrame:
     X, y, queries = load_svmlight_file(str(path), query_id=True)
 
     if load_features:
-        features = np.squeeze(np.asarray(X.todense(), dtype=np.float))
+        features = np.squeeze(np.asarray(X.todense()))
         df = pd.DataFrame({"features": list(features)})
     else:
         df = pd.DataFrame()
