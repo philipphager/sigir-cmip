@@ -43,6 +43,35 @@ class RatingDataset(Dataset):
         return len(self.query_id)
 
 
+class FeatureRatingDataset(Dataset):
+    def __init__(self, path: Union[str, Path]):
+        self.path = path
+
+        df = pd.read_parquet(self.path)
+        assert all(
+            [c in df.columns for c in ["query_id", "doc_ids", "features", "relevance"]]
+        )
+
+        self.query_id = torch.tensor(df["query_id"])
+        self.n = torch.tensor(df["doc_ids"].map(len))
+        self.x = self.pad(df["doc_ids"])
+        self.features = self.pad(df["features"].map(list))
+        self.y = self.pad(df["relevance"])
+
+    @staticmethod
+    def pad(column: List[List[int]]):
+        """
+        Pad a list of variable-sized lists to max length
+        """
+        return pad_sequence([torch.tensor(y) for y in column], batch_first=True)
+
+    def __getitem__(self, i):
+        return self.query_id[i], self.x[i], self.features[i], self.y[i], self.n[i]
+
+    def __len__(self):
+        return len(self.query_id)
+
+
 class ClickDataset(Dataset):
     def __init__(
         self,
