@@ -81,4 +81,4 @@ def hash_config(config: DictConfig, datetime: str = None):
 def get_checkpoint_directory(config: DictConfig) -> Path:
     checkpoint_dir = Path(config.base_dir) / "checkpoints"
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
-    return checkpoint_dir / f"{config.filename}.ckpt"
+    return checkpoint_dir / f"{hash_config(config)}.ckpt"

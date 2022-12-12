@@ -1,7 +1,7 @@
 defaults:
   - _self_
   - data: mslr10k
-  - model: cacm-minus
+  - model: dctr
   - env
 
 train_val_trainer:
@@ -10,18 +10,8 @@ train_val_trainer:
   accelerator: auto
   devices: 1
   #strategy: single_device # For DDP, pass 'train_val_trainer.strategy=ddp_find_unused_parameters_false' in cmd
-  callbacks:
-    - _target_: pytorch_lightning.callbacks.EarlyStopping
-      monitor: val_loss/dataloader_idx_0
-      patience: 1
-    - _target_: pytorch_lightning.callbacks.RichProgressBar
-    - _target_: pytorch_lightning.callbacks.ModelCheckpoint
-      dirpath: ${base_dir}checkpoints/
-      filename: ${filename}
-      monitor: val_loss/dataloader_idx_0
-      mode: min
+  callbacks: ???
   logger: ???
-#  logger: ???
 
 test_trainer:
   _target_: pytorch_lightning.Trainer
@@ -32,6 +22,22 @@ test_trainer:
   callbacks:
     - _target_: pytorch_lightning.callbacks.RichProgressBar
 
+
+early_stopping:
+  _target_: pytorch_lightning.callbacks.EarlyStopping
+  monitor: Metrics/val_loss/dataloader_idx_0
+  patience: 1
+
+progress_bar:
+  _target_: pytorch_lightning.callbacks.RichProgressBar
+
+model_checkpoint:
+  _target_: pytorch_lightning.callbacks.ModelCheckpoint
+  dirpath: ${base_dir}checkpoints/
+  filename: ???
+  monitor: Metrics/val_loss/dataloader_idx_0
+  mode: min
+
 wandb_logger:
   _target_: pytorch_lightning.loggers.WandbLogger
   project: "cm-bias-evaluation"
@@ -41,4 +47,3 @@ wandb_logger:
 
 random_state: 0
 base_dir: ???
-filename: "${hydra:runtime.choices.model}_${hydra:runtime.choices.logging_policy@train_policy}_${hydra:runtime.choices.user_model@train_user}_${hydra:runtime.choices.data}_seed-${random_state}"

@@ -21,6 +21,10 @@ logger = logging.getLogger(__name__)
 
 @hydra.main(config_path="config", config_name="config", version_base="1.2")
 def main(config: DictConfig):
+    if os.path.exists(config.base_dir + "checkpoints/" + hash_config(config) + ".ckpt"):
+        print("Checkpoint found, skipping training...")
+        return
+
     logger.info(OmegaConf.to_yaml(config))
     logger.info("Working directory : {}".format(os.getcwd()))
     seed_everything(config.random_state)
@@ -35,7 +39,17 @@ def main(config: DictConfig):
     wandb_config = OmegaConf.to_container(config, resolve=True)
     wandb_logger.experiment.config.update(wandb_config)
 
-    trainer = instantiate(config.train_val_trainer, logger=wandb_logger)
+    early_stopping = instantiate(config.early_stopping)
+    progress_bar = instantiate(config.progress_bar)
+    model_checkpoint = instantiate(
+        config.model_checkpoint, filename=hash_config(config)
+    )
+
+    trainer = instantiate(
+        config.train_val_trainer,
+        logger=wandb_logger,
+        callbacks=[early_stopping, progress_bar, model_checkpoint],
+    )
     model = instantiate(
         config.model,
         n_documents=dataset.get_n_documents(),
