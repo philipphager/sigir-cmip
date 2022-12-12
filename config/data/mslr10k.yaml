@@ -3,9 +3,9 @@ defaults:
   - loader@rating_loader: mslr10k-ratings
   - logging_policy@train_policy: noisy-oracle
   - logging_policy@test_policy: uniform
-  - user_model@train_simulator.user_model: graded-trust
-  - user_model@val_simulator.user_model: graded-trust
-  - user_model@test_simulator.user_model: graded-trust
+  - user_model@train_simulator.user_model: mixture-dbn
+  - user_model@val_simulator.user_model: mixture-dbn
+  - user_model@test_simulator.user_model: mixture-dbn
   - query_dist@train_simulator.query_dist: powerlaw
   - query_dist@val_simulator.query_dist: powerlaw
   - query_dist@test_simulator.query_dist: powerlaw
