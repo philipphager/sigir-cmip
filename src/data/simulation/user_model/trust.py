@@ -21,7 +21,7 @@ class BinaryTrustBias(UserModel):
                     + P(E = 1 | k) * P(R = 0 | d) * P(C = 1 | E = 1, R = 0, k)
     """
 
-    def __init__(self, position_bias: float = 1.0):
+    def __init__(self, position_bias: float = 0.8):
         self.position_bias = position_bias
 
     def __call__(self, y: torch.Tensor) -> torch.Tensor:
@@ -49,7 +49,7 @@ class GradedTrustBias(UserModel):
                     + P(E = 1 | k) * P(R = 0 | d) * P(C = 1 | E = 1, R = 0, k)
     """
 
-    def __init__(self, position_bias: float = 1.0):
+    def __init__(self, position_bias: float = 0.8):
         self.position_bias = position_bias
 
     def __call__(self, y: torch.Tensor) -> torch.Tensor:

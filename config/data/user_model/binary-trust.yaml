@@ -1,2 +1,2 @@
 _target_: src.data.simulation.user_model.BinaryTrustBias
-position_bias: 1.0
+position_bias: 0.8

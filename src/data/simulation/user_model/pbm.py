@@ -9,7 +9,7 @@ from src.data.simulation.user_model.util import (
 
 
 class BinaryPBM(UserModel):
-    def __init__(self, click_noise: float = 0.1, position_bias: float = 1.0):
+    def __init__(self, click_noise: float = 0.1, position_bias: float = 0.8):
         self.click_noise = click_noise
         self.position_bias = position_bias
 
@@ -22,7 +22,7 @@ class BinaryPBM(UserModel):
 
 
 class GradedPBM(UserModel):
-    def __init__(self, click_noise: float = 0.1, position_bias: float = 1.0):
+    def __init__(self, click_noise: float = 0.1, position_bias: float = 0.8):
         self.click_noise = click_noise
         self.position_bias = position_bias
 
