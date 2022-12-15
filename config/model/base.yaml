@@ -18,3 +18,12 @@ metrics:
     name: pointwise_ci
     classifier:
       _target_: lightgbm.LGBMClassifier
+  - _target_: src.evaluation.ConditionalMutualInformation
+    name: cmi
+    n_bootstrap: 3
+    kl_divergence:
+      _target_: src.evaluation.ClassifierKLDivergence
+      n_bootstrap: 5
+      eta: 0.01
+      classifier:
+        _target_: lightgbm.LGBMClassifier
