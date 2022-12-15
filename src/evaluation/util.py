@@ -10,6 +10,6 @@ def join_metrics(metrics: List[Dict[str, float]], stage: str = "") -> Dict[str, 
 
     for metric in metrics:
         for k, v in metric.items():
-            output[f"Metrics/{stage}_{k}"] = v
+            output[f"Metrics/{stage}/{k}"] = v
 
     return output

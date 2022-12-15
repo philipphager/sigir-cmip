@@ -25,7 +25,7 @@ test_trainer:
 
 early_stopping:
   _target_: pytorch_lightning.callbacks.EarlyStopping
-  monitor: Metrics/val_loss/dataloader_idx_0
+  monitor: Metrics/val/loss/dataloader_idx_0
   patience: 1
 
 progress_bar:
@@ -35,7 +35,7 @@ model_checkpoint:
   _target_: pytorch_lightning.callbacks.ModelCheckpoint
   dirpath: ${base_dir}checkpoints/
   filename: ???
-  monitor: Metrics/val_loss/dataloader_idx_0
+  monitor: Metrics/val/loss/dataloader_idx_0
   mode: min
 
 wandb_logger:
@@ -47,3 +47,5 @@ wandb_logger:
 
 random_state: 0
 base_dir: ???
+experiment_name: test-exp
+run_name: test-run

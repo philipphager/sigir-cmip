@@ -23,6 +23,7 @@ class PBM(NeuralClickModel):
 
         self.relevance = nn.Sequential(nn.Embedding(n_documents, 1), nn.Sigmoid())
         self.examination = nn.Sequential(nn.Embedding(n_results, 1), nn.Sigmoid())
+        self.n_results = n_results
 
     def forward(
         self,
@@ -41,3 +42,10 @@ class PBM(NeuralClickModel):
             return y_predict.squeeze(), relevance.squeeze()
         else:
             return relevance.squeeze()
+
+    def on_train_end(self):
+        self.logger.log_table(
+            key="Appendix/propensities",
+            columns=[str(i) for i in range(1, self.n_results + 1)],
+            data=self.examination(torch.arange(10)).transpose(0, 1).tolist(),
+        )

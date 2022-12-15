@@ -47,7 +47,8 @@ class ClickModel(LightningModule, ABC):
             metrics += self._get_relevance_metrics(y_predict, y, n)
 
         metrics = join_metrics(metrics, stage="val")
-        self.log_dict(metrics)
+        self.log_dict(metrics, logger=False)
+        self.logger.log_metrics(metrics, step=self.current_epoch)
 
         return metrics
 
@@ -73,7 +74,8 @@ class ClickModel(LightningModule, ABC):
                 metrics += self._get_policy_metrics(y_predict, y_lp, y, n)
 
         metrics = join_metrics(metrics, stage="test")
-        self.log_dict(metrics)
+        self.log_dict(metrics, logger=False)
+        self.logger.log_metrics(metrics, step=self.current_epoch)
 
         return metrics
 
