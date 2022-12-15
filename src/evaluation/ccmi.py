@@ -16,8 +16,8 @@ class KLDivergence(ABC):
 
 class ClassifierKLDivergence(KLDivergence):
     """
-    Classifier-based estimator of the Kullback–Leibler divergence as in Eq. 3 of
-    [Mukherjee et al. 2019](http://auai.org/uai2019/proceedings/papers/403.pdf).
+    Classifier-based estimator of the Kullback–Leibler divergence as in Eq. 3 and Alg. 1
+    of [Mukherjee et al. 2019](http://auai.org/uai2019/proceedings/papers/403.pdf).
     """
 
     def __init__(self, classifier: Any, n_bootstrap: int, eta: float):
@@ -37,28 +37,32 @@ class ClassifierKLDivergence(KLDivergence):
         q_train, q_test = random_split(q, 2)
 
         train = torch.vstack([p_train, q_train])
-        self.train(train)
+        classifier = self.train(self.classifier, train)
 
-        p_predict = self.predict(p_test)
-        q_predict = self.predict(q_test)
+        p_predict = self.predict(classifier, p_test, self.eta)
+        q_predict = self.predict(classifier, q_test, self.eta)
 
+        # Point-wise likelihood ratio as in section 3.1
         p_ratio = p_predict / (1 - p_predict)
         q_ratio = q_predict / (1 - q_predict)
 
+        # Estimate KL divergence using Donsker-Varadhan formulation
         return (p_ratio.log() - q_ratio.mean().log()).mean()
 
-    def train(self, train: torch.Tensor):
+    @staticmethod
+    def train(model: Any, train: torch.Tensor):
         x = train[:, :3].numpy()
         y = train[:, 3].numpy()
+        model.fit(x, y)
 
-        self.classifier.fit(x, y)
+        return model
 
-    def predict(self, test: torch.Tensor):
-        x = test[:, :3]
-        y_predict = self.classifier.predict_proba(x.numpy())
-        y_predict = torch.tensor(y_predict[:, 1])
-
-        return y_predict.clip(self.eta, 1 - self.eta)
+    @staticmethod
+    def predict(model: Any, test: torch.Tensor, eta: float):
+        x = test[:, :3].numpy()
+        y_predict = torch.tensor(model.predict_proba(x)[:, 1])
+        # Clip predictions to avoid exploding likelihood ratios
+        return y_predict.clip(eta, 1 - eta)
 
 
 class ConditionalMutualInformation(PolicyMetric):
