@@ -4,7 +4,7 @@ from typing import Any, Dict
 import torch
 
 from src.evaluation.base import PolicyMetric
-from src.evaluation.ci import nearest_neighbor_bootstrap
+from src.evaluation.ccit import nearest_neighbor_bootstrap
 from src.evaluation.util import add_label, hstack, padding_mask, random_split
 
 
