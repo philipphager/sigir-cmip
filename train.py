@@ -3,7 +3,6 @@ import os
 import warnings
 
 import hydra
-import torch
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
@@ -11,6 +10,7 @@ from pytorch_lightning import seed_everything
 from src.model.base import NeuralClickModel, StatsClickModel
 from src.util.file import get_checkpoint_directory, hash_config
 from src.util.hydra import ConfigWrapper
+from src.util.logger import log_dataset_stats
 
 warnings.filterwarnings(
     "ignore", ".*Consider increasing the value of the `num_workers` argument*"
@@ -39,16 +39,7 @@ def main(config: DictConfig):
     wandb_logger = instantiate(config.wandb_logger, id=hash_config(config))
     wandb_config = OmegaConf.to_container(config, resolve=True)
     wandb_logger.experiment.config.update(wandb_config)
-    click_stats = dataset.get_train_stats()
-    average_clicks_per_rank = (
-        torch.mean(click_stats.document_rank_clicks, dim=0)
-        / torch.mean(click_stats.document_rank_impressions, dim=0)
-    ).tolist()
-    wandb_logger.log_table(
-        key="Appendix/average_clicks_per_rank",
-        columns=[str(i) for i in range(1, config.data.n_results + 1)],
-        data=[average_clicks_per_rank],
-    )
+    log_dataset_stats(dataset.get_train_stats(), wandb_logger, config)
 
     early_stopping = instantiate(config.early_stopping)
     progress_bar = instantiate(config.progress_bar)

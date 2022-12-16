@@ -137,7 +137,8 @@ class NeuralClickModel(ClickModel):
         metrics = [{"loss": loss}]
         metrics += self._get_click_metrics(y_predict_click, y_click, n)
         metrics = join_metrics(metrics, "train")
-        self.log_dict(metrics)
+        self.log_dict(metrics, logger=False)
+        self.logger.log_metrics(metrics, step=self.global_step)
 
         return loss
 
