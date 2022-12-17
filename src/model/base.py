@@ -41,16 +41,33 @@ class ClickModel(LightningModule, ABC):
             loss = self.loss(y_predict_click, y_click, n)
             metrics += [{"loss": loss}]
             metrics += self._get_click_metrics(y_predict_click, y_click, n)
+
+            click_probs = y_predict_click.mean(dim=0)
         else:
+            click_probs = []
             query_ids, x, y, n = batch
             y_predict = self.forward(x, click_pred=False)
             metrics += self._get_relevance_metrics(y_predict, y, n)
 
         metrics = join_metrics(metrics, stage="val")
-        self.log_dict(metrics, logger=False)
-        self.logger.log_metrics(metrics, step=self.current_epoch)
+        if self.trainer.global_step > 10:
+            self.log_dict(metrics, logger=False)
+            self.logger.log_metrics(metrics, step=self.current_epoch)
 
-        return metrics
+        return metrics, click_probs
+
+    def validation_epoch_end(self, outputs):
+        """
+        Log click probabilities.
+        """
+        click_outputs = outputs[0]
+        click_probs = torch.stack([co[1] for co in click_outputs]).mean(dim=0)
+        self.logger.log_table(
+            key="Appendix/click_probs",
+            columns=[str(i) for i in range(1, self.n_results + 1)],
+            data=[click_probs.tolist()],
+            step=self.current_epoch,
+        )
 
     def test_step(self, batch, idx: int, dl_idx: int):
         metrics = []

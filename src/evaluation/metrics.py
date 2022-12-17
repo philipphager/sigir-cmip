@@ -22,6 +22,7 @@ class NDCG(RelevanceMetric):
         y_predict: torch.FloatTensor,
         y_true: torch.LongTensor,
         n: torch.LongTensor,
+        verbose=False,
     ) -> Dict[str, float]:
         # Mask padding in queries with less than max docs
         y_predict = mask_padding(y_predict, n, fill=-float("inf"))
