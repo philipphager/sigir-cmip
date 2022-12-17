@@ -16,10 +16,12 @@ class ClickModel(LightningModule, ABC):
     def __init__(
         self,
         metrics: List[Metric],
+        n_results: int,
         lp_scores: Optional[torch.FloatTensor],
     ):
         super().__init__()
         self.metrics = metrics
+        self.n_results = n_results
         self.lp_scores = lp_scores
 
     @abstractmethod
@@ -127,9 +129,10 @@ class NeuralClickModel(ClickModel):
         optimizer: str,
         learning_rate: float,
         metrics: List[Metric],
+        n_results: int,
         lp_scores: Optional[torch.FloatTensor] = None,
     ):
-        super().__init__(metrics, lp_scores)
+        super().__init__(metrics, n_results, lp_scores)
         self.loss = loss
         self.optimizer = optimizer
         self.learning_rate = learning_rate
@@ -170,10 +173,11 @@ class StatsClickModel(ClickModel, ABC):
         self,
         loss: nn.Module,
         metrics: List[Metric],
+        n_results: int,
         train_stats: ClickDatasetStats,
         lp_scores: Optional[torch.FloatTensor] = None,
     ):
-        super().__init__(metrics, lp_scores)
+        super().__init__(metrics, n_results, lp_scores)
         self.loss = loss
         self.lp_scores = lp_scores
 

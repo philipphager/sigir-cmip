@@ -3,6 +3,7 @@ loss:
   _target_: src.model.loss.BinaryCrossEntropy
 
 n_documents: ???
+n_results: "${data.n_results}"
 
 metrics:
   - _target_: src.evaluation.Perplexity

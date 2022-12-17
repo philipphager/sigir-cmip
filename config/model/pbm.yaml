@@ -2,6 +2,5 @@ defaults:
   - base
 
 _target_: src.model.PBM
-n_results: "${data.n_results}"
 optimizer: adam
 learning_rate: 0.001

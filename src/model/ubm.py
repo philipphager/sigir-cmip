@@ -19,11 +19,10 @@ class UBM(NeuralClickModel):
         lp_scores: torch.FloatTensor = None,
         **kwargs,
     ):
-        super().__init__(loss, optimizer, learning_rate, metrics, lp_scores)
+        super().__init__(loss, optimizer, learning_rate, metrics, n_results, lp_scores)
 
         self.relevance = nn.Sequential(nn.Embedding(n_documents, 1), nn.Sigmoid())
         self.examination = nn.Sequential(nn.Embedding(n_results**2, 1), nn.Sigmoid())
-        self.n_results = n_results
 
     def forward(
         self,

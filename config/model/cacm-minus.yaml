@@ -2,7 +2,6 @@ defaults:
   - base
 
 _target_: src.model.CACM_minus
-n_results: "${data.n_results}"
 optimizer: adam
 learning_rate: 0.001
 pos_embedd_dim: 4
