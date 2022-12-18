@@ -35,11 +35,6 @@ class GradedCarousel(UserModel):
             .unsqueeze(1)
             .expand(n_queries, -1, self.carousel_length)
         )
-        carousel_attractiveness = (
-            torch.mean(attractiveness, dim=2)
-            .unsqueeze(2)
-            .expand(-1, -1, self.carousel_length)
-        )
 
         y_click = torch.zeros_like(y).reshape(
             n_queries, n_results // self.carousel_length, self.carousel_length
@@ -57,6 +52,6 @@ class GradedCarousel(UserModel):
                 examination[:, :, j] * attractiveness[:, :, j]
             )
 
-        y_click = y_click * carousel_attractiveness * carousel_examination
+        y_click = y_click * carousel_examination
 
         return y_click.reshape(n_queries, n_results)
