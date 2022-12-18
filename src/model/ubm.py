@@ -26,6 +26,7 @@ class UBM(NeuralClickModel):
 
     def forward(
         self,
+        q: torch.Tensor,
         x: torch.Tensor,
         click_pred: bool = True,
         true_clicks: torch.LongTensor = None,

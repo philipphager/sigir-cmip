@@ -42,7 +42,7 @@ wandb_logger:
   _target_: pytorch_lightning.loggers.WandbLogger
   project: "cm-bias-evaluation"
   entity: "cm-offline-metrics"
-  save_dir: wandb
+  save_dir: ${base_dir}wandb
   id: ???
 
 random_state: 0

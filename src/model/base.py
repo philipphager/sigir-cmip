@@ -38,7 +38,7 @@ class ClickModel(LightningModule, ABC):
 
         if dl_idx == CLICK_DATASET_IDX:
             q, x, y_click, n = batch
-            y_predict_click, y_predict = self.forward(x, true_clicks=y_click)
+            y_predict_click, _ = self.forward(q, x, true_clicks=y_click)
 
             loss = self.loss(y_predict_click, y_click, n)
             metrics += [{"loss": loss}]
@@ -47,8 +47,8 @@ class ClickModel(LightningModule, ABC):
             click_probs = y_predict_click.mean(dim=0)
         else:
             click_probs = []
-            query_ids, x, y, n = batch
-            y_predict = self.forward(x, click_pred=False)
+            q, x, y, n = batch
+            y_predict = self.forward(q, x, click_pred=False)
             metrics += self._get_relevance_metrics(y_predict, y, n)
 
         metrics = join_metrics(metrics, stage="val")
@@ -75,14 +75,14 @@ class ClickModel(LightningModule, ABC):
 
         if dl_idx == CLICK_DATASET_IDX:
             q, x, y_click, n = batch
-            y_predict_click, y_predict = self.forward(x, true_clicks=y_click)
+            y_predict_click, _ = self.forward(q, x, true_clicks=y_click)
             loss = self.loss(y_predict_click, y_click, n)
 
             metrics += [{"loss": loss}]
             metrics += self._get_click_metrics(y_predict_click, y_click, n)
         else:
-            query_ids, x, y, n = batch
-            y_predict = self.forward(x, click_pred=False)
+            q, x, y, n = batch
+            y_predict = self.forward(q, x, click_pred=False)
 
             y_lp = self.lp_scores.to(self.device)
             metrics += self._get_relevance_metrics(y_predict, y, n)
@@ -150,7 +150,7 @@ class NeuralClickModel(ClickModel):
     def training_step(self, batch, idx):
         q, x, y_click, n = batch
 
-        y_predict_click, _ = self.forward(x, true_clicks=y_click)
+        y_predict_click, _ = self.forward(q, x, true_clicks=y_click)
         loss = self.loss(y_predict_click, y_click, n)
 
         metrics = [{"loss": loss}]

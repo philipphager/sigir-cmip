@@ -203,6 +203,10 @@ class MSLR(pl.LightningDataModule):
         self.assert_setup()
         return self.dataset.n.sum()
 
+    def get_n_queries(self) -> int:
+        self.assert_setup()
+        return self.dataset.query_id.max()
+
     def get_n_results(self) -> int:
         return self.n_results
 

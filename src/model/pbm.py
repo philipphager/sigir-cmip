@@ -26,6 +26,7 @@ class PBM(NeuralClickModel):
 
     def forward(
         self,
+        q: torch.Tensor,
         x: torch.Tensor,
         click_pred: bool = True,
         true_clicks: torch.LongTensor = None,
@@ -46,5 +47,7 @@ class PBM(NeuralClickModel):
         self.logger.log_table(
             key="Appendix/propensities",
             columns=[str(i) for i in range(1, self.n_results + 1)],
-            data=self.examination(torch.arange(10)).transpose(0, 1).tolist(),
+            data=self.examination(torch.arange(self.n_results))
+            .transpose(0, 1)
+            .tolist(),
         )
