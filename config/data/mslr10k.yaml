@@ -18,15 +18,18 @@ train_simulator:
   query_dist: ???
   n_sessions: 5_000_000
   rank_size: "${data.n_results}"
+  temperature: 1
 val_simulator:
   _target_: src.data.simulation.Simulator
   user_model: ???
   query_dist: ???
   n_sessions: 1_000_000
   rank_size: "${data.n_results}"
+  temperature: 1
 test_simulator:
   _target_: src.data.simulation.Simulator
   user_model: ???
   query_dist: ???
   n_sessions: 1_000_000
   rank_size: "${data.n_results}"
+  temperature: 0

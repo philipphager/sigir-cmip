@@ -16,11 +16,13 @@ class Simulator:
         query_dist: QueryDist,
         n_sessions: int,
         rank_size: int,
+        temperature: int,
     ):
         self.user_model = user_model
         self.n_sessions = n_sessions
         self.query_dist = query_dist
         self.rank_size = rank_size
+        self.temperature = temperature
 
     def __call__(
         self, dataset: RatingDataset, lp_scores: torch.FloatTensor, eps: float = 1e-9
@@ -39,7 +41,7 @@ class Simulator:
         logger.info("Sample top-k rankings")
         y_predict = lp_scores[sample_ids]
         noise = torch.rand_like(y_predict.float())
-        y_predict = y_predict - torch.log(-torch.log(noise))
+        y_predict = y_predict - self.temperature * torch.log(-torch.log(noise))
         idx = torch.argsort(-y_predict)[:, : self.rank_size]
         x_impressed = torch.gather(x, 1, idx)
         y_impressed = torch.gather(y, 1, idx)
