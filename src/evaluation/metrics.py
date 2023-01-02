@@ -58,14 +58,14 @@ class Perplexity(ClickMetric):
     - y_predict_click: torch.FloatTensor[batch_size, max_docs] -> click predictions
     - y_click: torch.LongTensor[batch_size, max_docs] -> click ground truth
     - n: torch.LongTensor[batch_size] -> number of documents in each query
-    - ranks: torch.LongTensor[batch_size] -> cutoff ranks for ppl (0 for no cutoff)
+    - max_rank: int -> maximum rank for perplexity computation.
     - eps: float -> Clipping value to avoid -inf in log computation
     return: torch.FloatTensor[max_docs] -> perplexity@k for each cutoff rank k
     """
 
-    def __init__(self, name: str, ranks: List[int], eps: float = 1e-10):
+    def __init__(self, name: str, max_rank: int, eps: float = 1e-10):
         self.name = name
-        self.ranks = ranks
+        self.ranks = torch.arange(max_rank)
         self.eps = eps
 
     def __call__(
