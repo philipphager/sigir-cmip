@@ -1,16 +1,23 @@
 import torch
-from torch.distributions.categorical import Categorical
-
-from src.data.simulation.query_dist.base import QueryDist
 
 
-class PowerLawQueryDist(QueryDist):
-    def __init__(self, alpha: float):
+class PowerLawQueryDist:
+    def __init__(self, alpha: float, random_state: int):
         self.alpha = alpha
-        self.generator = torch.Generator()  # Fix distribution at training and test time
+        self.random_state = random_state
+        self.generator = torch.Generator().manual_seed(random_state)
 
     def __call__(self, n_queries: int, n_sessions: int) -> torch.LongTensor:
-        shuffle_q = torch.randperm(n_queries, generator=self.generator)
+        # Create new generator to fix query distribution across consecutive calls
+        query_generator = torch.Generator().manual_seed(self.random_state)
+
+        shuffle_q = torch.randperm(n_queries, generator=query_generator)
         probs = torch.arange(1, n_queries + 1).pow(-self.alpha)
         probs = probs[shuffle_q]
-        return Categorical(probs=probs).sample(sample_shape=(n_sessions,))
+
+        return torch.multinomial(
+            probs,
+            n_sessions,
+            replacement=True,
+            generator=self.generator,
+        ).long()
