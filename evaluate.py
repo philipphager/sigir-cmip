@@ -33,6 +33,7 @@ def main(config: DictConfig):
     model = instantiate(
         config.model,
         n_documents=dataset.get_n_documents(),
+        n_queries=dataset.get_n_queries(),
         train_stats=dataset.get_train_stats(),
         lp_scores=dataset.get_train_policy_scores(),
     )
