@@ -7,7 +7,7 @@ from src.model.loss import mask_padding
 
 class UniformPolicy(LoggingPolicy):
     def __init__(self, random_state: int):
-        self.random_state = random_state
+        self.generator = torch.Generator().manual_seed(random_state)
 
     def fit(self, dataset: RatingDataset):
         pass
@@ -15,8 +15,7 @@ class UniformPolicy(LoggingPolicy):
     def predict(self, dataset: RatingDataset) -> torch.Tensor:
         query_ids, x, y, n = dataset[:]
 
-        generator = torch.Generator().manual_seed(self.random_state)
-        y = torch.rand(y.size(), generator=generator)
+        y = torch.rand(y.size(), generator=self.generator)
         y = mask_padding(y, n, -torch.inf)
 
         return y

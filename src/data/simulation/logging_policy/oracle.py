@@ -8,7 +8,7 @@ from src.model.loss import mask_padding
 class NoisyOraclePolicy(LoggingPolicy):
     def __init__(self, noise: float, random_state: int):
         self.noise = noise
-        self.random_state = random_state
+        self.generator = torch.Generator().manual_seed(random_state)
 
     def fit(self, dataset: RatingDataset):
         pass
@@ -16,8 +16,7 @@ class NoisyOraclePolicy(LoggingPolicy):
     def predict(self, dataset: RatingDataset) -> torch.Tensor:
         query_ids, x, y, n = dataset[:]
 
-        generator = torch.Generator().manual_seed(self.random_state)
-        y = y + self.noise * torch.randn(y.size(), generator=generator)
+        y = y + self.noise * torch.randn(y.size(), generator=self.generator)
         y = mask_padding(y, n, -torch.inf)
 
         return y
