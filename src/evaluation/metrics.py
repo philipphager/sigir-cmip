@@ -28,6 +28,11 @@ class NDCG(RelevanceMetric):
         y_predict = mask_padding(y_predict, n, fill=-float("inf"))
         y_true = mask_padding(y_true, n, fill=0)
 
+        # Shuffle documents to break ties between documents with equal y_predict
+        shuffle_idx = torch.argsort(torch.rand_like(y_predict), dim=1)
+        y_predict = torch.gather(y_predict, index=shuffle_idx, dim=1)
+        y_true = torch.gather(y_true, index=shuffle_idx, dim=1)
+
         sorted_pred = y_true[
             torch.arange(len(y_true)).unsqueeze(1),
             torch.argsort(y_predict, dim=1, descending=True),
