@@ -1,1 +1,2 @@
 _target_: src.data.simulation.logging_policy.UniformPolicy
+random_state: ${data.random_state}
