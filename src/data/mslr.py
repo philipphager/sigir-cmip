@@ -31,6 +31,7 @@ class MSLR(pl.LightningDataModule):
         num_workers: int,
         persistent_workers: bool,
         n_results: int,
+        random_state: int,
     ):
         super().__init__()
         self.rating_loader = rating_loader
@@ -45,6 +46,7 @@ class MSLR(pl.LightningDataModule):
         self.num_workers = num_workers
         self.persistent_workers = persistent_workers
         self.n_results = n_results
+        self.random_state = random_state
 
         self.dataset = None
         self.train_policy_scores = None
