@@ -7,13 +7,15 @@ from src.data.simulation.user_model.util import get_graded_relevance
 class GradedDBN(UserModel):
     def __init__(
         self,
-        attractiveness_noise: float = 0.1,
-        click_noise: float = 0.1,
-        gamma: float = 0.9,
+        attractiveness_noise: float,
+        click_noise: float,
+        gamma: float,
+        random_state: int,
     ):
         self.attractiveness_noise = attractiveness_noise
         self.click_noise = click_noise
         self.gamma = gamma
+        self.generator = torch.Generator().manual_seed(random_state)
 
     def __call__(self, y: torch.Tensor) -> torch.Tensor:
         n_queries, n_results = y.shape
@@ -21,7 +23,9 @@ class GradedDBN(UserModel):
         relevance = get_graded_relevance(y, noise=0)
 
         # Use noisy relevance as attractiveness, add min attractiveness
-        noise = self.attractiveness_noise * torch.randn_like(relevance)
+        noise = self.attractiveness_noise * torch.randn(
+            relevance.size(), generator=self.generator
+        )
         attractiveness = relevance + noise
         attractiveness = attractiveness.clip(self.click_noise, 1)
 
@@ -37,7 +41,10 @@ class GradedDBN(UserModel):
                     * (1 - y_click[:, i - 1] * satisfaction[:, i - 1])
                 )
 
-            y_click[:, i] = torch.bernoulli(examination[:, i] * attractiveness[:, i])
+            y_click[:, i] = torch.bernoulli(
+                examination[:, i] * attractiveness[:, i],
+                generator=self.generator,
+            )
 
         return y_click
 
@@ -45,15 +52,17 @@ class GradedDBN(UserModel):
 class MixtureDBN(UserModel):
     def __init__(
         self,
-        attractiveness_noise: float = 0.1,
-        click_noise: float = 0.1,
-        gamma: float = 0.7,
-        mixture_param: float = 0.7,
+        attractiveness_noise: float,
+        click_noise: float,
+        gamma: float,
+        mixture_param: float,
+        random_state: int,
     ):
         self.attractiveness_noise = attractiveness_noise
         self.click_noise = click_noise
         self.gamma = gamma
         self.mixture_param = mixture_param
+        self.generator = torch.Generator().manual_seed(random_state)
 
     def __call__(self, y: torch.Tensor) -> torch.Tensor:
         n_queries, n_results = y.shape
@@ -61,7 +70,10 @@ class MixtureDBN(UserModel):
         relevance = get_graded_relevance(y, noise=0)
 
         # Use noisy relevance as attractiveness, add min attractiveness
-        noise = self.attractiveness_noise * torch.randn_like(relevance)
+        noise = self.attractiveness_noise * torch.randn(
+            relevance.size(),
+            generator=self.generator,
+        )
         attractiveness = relevance + noise
         attractiveness = attractiveness.clip(self.click_noise, 1)
 
@@ -79,7 +91,8 @@ class MixtureDBN(UserModel):
                     )
 
                 y_click[:, i] = torch.bernoulli(
-                    examination[:, i] * attractiveness[:, i]
+                    examination[:, i] * attractiveness[:, i],
+                    generator=self.generator,
                 )
 
         else:
@@ -92,7 +105,8 @@ class MixtureDBN(UserModel):
                     )
 
                 y_click[:, i - 1] = torch.bernoulli(
-                    examination[:, i - 1] * attractiveness[:, i - 1]
+                    examination[:, i - 1] * attractiveness[:, i - 1],
+                    generator=self.generator,
                 )
 
         return y_click
