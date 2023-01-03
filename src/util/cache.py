@@ -32,7 +32,7 @@ def cache(
 
         for config in configs:
             # Ensure to resolves interpolated values, e.g.: ${train_policy}
-            if isinstance(config, OmegaConf):
+            if isinstance(config, OmegaConf) or isinstance(config, DictConfig):
                 OmegaConf.resolve(config)
 
             key.update(str.encode(str(config)))
