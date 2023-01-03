@@ -3,3 +3,4 @@ attractiveness_noise: 0.1
 click_noise: 0.1
 gamma: 0.75
 position_bias: 0.9
+random_state: ${data.random_state}
