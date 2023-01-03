@@ -96,7 +96,6 @@ class MSLR(pl.LightningDataModule):
                 self.config.data.rating_loader,
                 self.config.data.train_policy,
                 self.config.data.train_simulator,
-                self.config.random_state,
             ],
         )
         def simulate_train():
@@ -109,7 +108,6 @@ class MSLR(pl.LightningDataModule):
                 self.config.data.rating_loader,
                 self.config.data.train_policy,
                 self.config.data.val_simulator,
-                self.config.random_state,
             ],
         )
         def simulate_val():
@@ -122,7 +120,6 @@ class MSLR(pl.LightningDataModule):
                 self.config.data.rating_loader,
                 self.config.data.test_policy,
                 self.config.data.test_simulator,
-                self.config.random_state,
             ],
         )
         def simulate_test():
@@ -132,8 +129,9 @@ class MSLR(pl.LightningDataModule):
             self.config.base_dir,
             "cache/train_click_stats",
             [
-                self.config.data,
-                self.config.random_state,
+                self.config.data.rating_loader,
+                self.config.data.train_policy,
+                self.config.data.train_simulator,
             ],
         )
         def get_train_click_stats():
