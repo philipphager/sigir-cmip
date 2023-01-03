@@ -63,7 +63,6 @@ class MSLR(pl.LightningDataModule):
             [
                 self.config.data.rating_loader,
                 self.config.data.train_policy,
-                self.config.random_state,
             ],
         )
         def train_policy_scores():
@@ -80,7 +79,6 @@ class MSLR(pl.LightningDataModule):
             [
                 self.config.data.rating_loader,
                 self.config.data.test_policy,
-                self.config.random_state,
             ],
         )
         def test_policy_scores():
