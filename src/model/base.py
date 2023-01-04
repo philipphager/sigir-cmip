@@ -17,12 +17,14 @@ class ClickModel(LightningModule, ABC):
         self,
         metrics: List[Metric],
         n_results: int,
+        random_state: int,
         lp_scores: Optional[torch.FloatTensor],
     ):
         super().__init__()
         self.metrics = metrics
         self.n_results = n_results
         self.lp_scores = lp_scores
+        self.generator = torch.Generator().manual_seed(random_state)
 
     @abstractmethod
     def forward(
@@ -129,13 +131,26 @@ class NeuralClickModel(ClickModel):
         learning_rate: float,
         metrics: List[Metric],
         n_results: int,
+        random_state: int,
         lp_scores: Optional[torch.FloatTensor] = None,
     ):
-        super().__init__(metrics, n_results, lp_scores)
+        super().__init__(metrics, n_results, random_state, lp_scores)
         self.loss = loss
         self.optimizer = optimizer
         self.learning_rate = learning_rate
         self.lp_scores = lp_scores
+
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            module.weight.data.normal_(mean=0.0, std=0.2, generator=self.generator)
+            module.bias.data.normal_(mean=0.0, std=0.2, generator=self.generator)
+        elif isinstance(module, nn.Embedding):
+            module.weight.data.normal_(mean=0.0, std=0.2, generator=self.generator)
+            if module.padding_idx is not None:
+                module.weight.data[module.padding_idx].zero_()
+        elif isinstance(module, nn.GRU):
+            for param in module.parameters():
+                param.data.normal_(mean=0.0, std=0.2, generator=self.generator)
 
     def configure_optimizers(self):
         if self.optimizer == "adam":
@@ -154,10 +169,10 @@ class NeuralClickModel(ClickModel):
         loss = self.loss(y_predict_click, y_click, n)
 
         metrics = [{"loss": loss}]
-        metrics += self._get_click_metrics(y_predict_click, y_click, n)
+        # metrics += self._get_click_metrics(y_predict_click, y_click, n)
         metrics = join_metrics(metrics, "train")
         self.log_dict(metrics, logger=False)
-        self.logger.log_metrics(metrics, step=self.global_step)
+        # self.logger.log_metrics(metrics, step=self.global_step)
 
         return loss
 
@@ -173,10 +188,11 @@ class StatsClickModel(ClickModel, ABC):
         loss: nn.Module,
         metrics: List[Metric],
         n_results: int,
+        random_state: int,
         train_stats: ClickDatasetStats,
         lp_scores: Optional[torch.FloatTensor] = None,
     ):
-        super().__init__(metrics, n_results, lp_scores)
+        super().__init__(metrics, n_results, random_state, lp_scores)
         self.loss = loss
         self.lp_scores = lp_scores
 

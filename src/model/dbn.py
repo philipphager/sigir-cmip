@@ -15,12 +15,15 @@ class DBN(NeuralClickModel):
         learning_rate: float,
         n_documents: int,
         n_results: int,
+        random_state: int,
         estimate_gamma: bool,
         metrics: List[Metric],
         lp_scores: torch.FloatTensor = None,
         **kwargs,
     ):
-        super().__init__(loss, optimizer, learning_rate, metrics, n_results, lp_scores)
+        super().__init__(
+            loss, optimizer, learning_rate, metrics, n_results, random_state, lp_scores
+        )
 
         self.attractiveness = nn.Sequential(nn.Embedding(n_documents, 1), nn.Sigmoid())
         self.satisfaction = nn.Sequential(nn.Embedding(n_documents, 1), nn.Sigmoid())
@@ -29,6 +32,8 @@ class DBN(NeuralClickModel):
             self.gamma = nn.Sequential(nn.Embedding(1, 1), nn.Sigmoid())
         else:
             self.gamma = nn.Embedding.from_pretrained(torch.ones((1, 1)))
+
+        self.apply(self._init_weights)
 
     def forward(
         self,

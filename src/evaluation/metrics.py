@@ -70,7 +70,7 @@ class Perplexity(ClickMetric):
 
     def __init__(self, name: str, max_rank: int, eps: float = 1e-10):
         self.name = name
-        self.ranks = torch.arange(max_rank)
+        self.ranks = torch.arange(max_rank + 1)
         self.eps = eps
 
     def __call__(

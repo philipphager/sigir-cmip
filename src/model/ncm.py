@@ -15,6 +15,7 @@ class NCM(NeuralClickModel):
         learning_rate: float,
         n_documents: int,
         n_results: int,
+        random_state: int,
         n_queries: int,
         query_embedd_dim: int,
         doc_embedd_dim: int,
@@ -24,7 +25,9 @@ class NCM(NeuralClickModel):
         lp_scores: torch.FloatTensor = None,
         **kwargs,
     ):
-        super().__init__(loss, optimizer, learning_rate, metrics, n_results, lp_scores)
+        super().__init__(
+            loss, optimizer, learning_rate, metrics, n_results, random_state, lp_scores
+        )
 
         self.query_embedd = nn.Embedding(n_queries + 1, query_embedd_dim)
         self.doc_embedd = nn.Embedding(n_documents, doc_embedd_dim)
@@ -42,6 +45,8 @@ class NCM(NeuralClickModel):
         )
 
         self.reduction = nn.Sequential(nn.Linear(inner_state_dim, 1), nn.Sigmoid())
+
+        self.apply(self._init_weights)
 
     def forward(
         self,
