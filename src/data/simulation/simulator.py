@@ -17,15 +17,20 @@ class Simulator:
         n_sessions: int,
         rank_size: int,
         temperature: int,
+        random_state: int,
     ):
         self.user_model = user_model
         self.n_sessions = n_sessions
         self.query_dist = query_dist
         self.rank_size = rank_size
         self.temperature = temperature
+        self.generator = torch.Generator().manual_seed(random_state)
 
     def __call__(
-        self, dataset: RatingDataset, lp_scores: torch.FloatTensor, eps: float = 1e-9
+        self,
+        dataset: RatingDataset,
+        lp_scores: torch.FloatTensor,
+        eps: float = 1e-9,
     ):
         query_ids, x, y, n = dataset[:]
 
@@ -40,7 +45,7 @@ class Simulator:
         # Sample top-k rankings using Gumbel noise trick
         logger.info("Sample top-k rankings")
         y_predict = lp_scores[sample_ids]
-        noise = torch.rand_like(y_predict.float())
+        noise = torch.rand(y_predict.size(), generator=self.generator)
         y_predict = y_predict - self.temperature * torch.log(-torch.log(noise))
         idx = torch.argsort(-y_predict)[:, : self.rank_size]
         x_impressed = torch.gather(x, 1, idx)
