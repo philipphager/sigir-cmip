@@ -81,7 +81,7 @@ class MixtureDBN(UserModel):
         examination = torch.ones_like(y).float()
         y_click = torch.zeros_like(y)
 
-        if torch.rand(1) <= self.mixture_param:
+        if torch.rand(1, generator=self.generator) <= self.mixture_param:
             for i in range(n_results):
                 if i > 0:
                     examination[:, i] = (
