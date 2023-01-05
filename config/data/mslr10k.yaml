@@ -6,9 +6,9 @@ defaults:
   - user_model@train_simulator.user_model: mixture-dbn
   - user_model@val_simulator.user_model: mixture-dbn
   - user_model@test_simulator.user_model: mixture-dbn
-  - query_dist@train_simulator.query_dist: powerlaw
-  - query_dist@val_simulator.query_dist: powerlaw
-  - query_dist@test_simulator.query_dist: powerlaw
+  - query_dist@train_simulator.query_dist: uniform
+  - query_dist@val_simulator.query_dist: uniform
+  - query_dist@test_simulator.query_dist: uniform
 
 
 _target_: src.data.MSLR
