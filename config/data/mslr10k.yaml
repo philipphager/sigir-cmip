@@ -17,19 +17,22 @@ train_simulator:
   user_model: ???
   query_dist: ???
   n_sessions: 5_000_000
-  rank_size: "${data.n_results}"
+  rank_size: ${data.n_results}
   temperature: 1
+  random_state: ${random_state}
 val_simulator:
   _target_: src.data.simulation.Simulator
   user_model: ???
   query_dist: ???
   n_sessions: 1_000_000
-  rank_size: "${data.n_results}"
+  rank_size: ${data.n_results}
   temperature: 1
+  random_state: ${random_state}
 test_simulator:
   _target_: src.data.simulation.Simulator
   user_model: ???
   query_dist: ???
   n_sessions: 1_000_000
-  rank_size: "${data.n_results}"
+  rank_size: ${data.n_results}
   temperature: 0
+  random_state: ${random_state}

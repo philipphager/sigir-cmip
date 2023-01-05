@@ -21,8 +21,9 @@ class BinaryTrustBias(UserModel):
                     + P(E = 1 | k) * P(R = 0 | d) * P(C = 1 | E = 1, R = 0, k)
     """
 
-    def __init__(self, position_bias: float = 0.8):
+    def __init__(self, position_bias: float, random_state: int):
         self.position_bias = position_bias
+        self.generator = torch.Generator().manual_seed(random_state)
 
     def __call__(self, y: torch.Tensor) -> torch.Tensor:
         n_queries, n_results = y.shape
@@ -35,7 +36,7 @@ class BinaryTrustBias(UserModel):
             relevance * tp_clicks + (1 - relevance) * fp_clicks
         )
 
-        return torch.bernoulli(click_probabilities)
+        return torch.bernoulli(click_probabilities, generator=self.generator)
 
 
 class GradedTrustBias(UserModel):
@@ -49,8 +50,9 @@ class GradedTrustBias(UserModel):
                     + P(E = 1 | k) * P(R = 0 | d) * P(C = 1 | E = 1, R = 0, k)
     """
 
-    def __init__(self, position_bias: float = 0.8):
+    def __init__(self, position_bias: float, random_state: int):
         self.position_bias = position_bias
+        self.generator = torch.Generator().manual_seed(random_state)
 
     def __call__(self, y: torch.Tensor) -> torch.Tensor:
         n_queries, n_results = y.shape
@@ -64,4 +66,4 @@ class GradedTrustBias(UserModel):
             relevance * tp_clicks + (1 - relevance) * fp_clicks
         )
 
-        return torch.bernoulli(click_probabilities)
+        return torch.bernoulli(click_probabilities, generator=self.generator)

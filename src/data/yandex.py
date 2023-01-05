@@ -29,6 +29,7 @@ class Yandex(pl.LightningDataModule):
         persistent_workers: bool,
         n_documents: int,
         n_results: int,
+        random_state: int,
     ):
         super().__init__()
         self.rating_loader = rating_loader
@@ -42,6 +43,7 @@ class Yandex(pl.LightningDataModule):
         self.persistent_workers = persistent_workers
         self.n_documents = n_documents
         self.n_results = n_results
+        self.random_state = random_state
 
         self.dataset = None
 

@@ -31,6 +31,7 @@ class MSLR(pl.LightningDataModule):
         num_workers: int,
         persistent_workers: bool,
         n_results: int,
+        random_state: int,
     ):
         super().__init__()
         self.rating_loader = rating_loader
@@ -45,6 +46,7 @@ class MSLR(pl.LightningDataModule):
         self.num_workers = num_workers
         self.persistent_workers = persistent_workers
         self.n_results = n_results
+        self.random_state = random_state
 
         self.dataset = None
         self.train_policy_scores = None
@@ -61,7 +63,6 @@ class MSLR(pl.LightningDataModule):
             [
                 self.config.data.rating_loader,
                 self.config.data.train_policy,
-                self.config.random_state,
             ],
         )
         def train_policy_scores():
@@ -78,7 +79,6 @@ class MSLR(pl.LightningDataModule):
             [
                 self.config.data.rating_loader,
                 self.config.data.test_policy,
-                self.config.random_state,
             ],
         )
         def test_policy_scores():
@@ -96,7 +96,6 @@ class MSLR(pl.LightningDataModule):
                 self.config.data.rating_loader,
                 self.config.data.train_policy,
                 self.config.data.train_simulator,
-                self.config.random_state,
             ],
         )
         def simulate_train():
@@ -109,7 +108,6 @@ class MSLR(pl.LightningDataModule):
                 self.config.data.rating_loader,
                 self.config.data.train_policy,
                 self.config.data.val_simulator,
-                self.config.random_state,
             ],
         )
         def simulate_val():
@@ -122,7 +120,6 @@ class MSLR(pl.LightningDataModule):
                 self.config.data.rating_loader,
                 self.config.data.test_policy,
                 self.config.data.test_simulator,
-                self.config.random_state,
             ],
         )
         def simulate_test():
@@ -132,8 +129,9 @@ class MSLR(pl.LightningDataModule):
             self.config.base_dir,
             "cache/train_click_stats",
             [
-                self.config.data,
-                self.config.random_state,
+                self.config.data.rating_loader,
+                self.config.data.train_policy,
+                self.config.data.train_simulator,
             ],
         )
         def get_train_click_stats():

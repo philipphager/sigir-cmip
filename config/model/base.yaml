@@ -4,6 +4,7 @@ loss:
 
 n_documents: ???
 n_results: ${data.n_results}
+random_state: ${random_state}
 
 metrics:
   - _target_: src.evaluation.Perplexity

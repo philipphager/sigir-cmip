@@ -7,17 +7,19 @@ from src.data.simulation.user_model.util import get_graded_relevance, get_positi
 class GradedCarousel(UserModel):
     def __init__(
         self,
-        position_bias: float = 0.8,
-        attractiveness_noise: float = 0.1,
-        click_noise: float = 0.1,
-        carousel_length: float = 5,
-        gamma: float = 0.75,
+        position_bias: float,
+        attractiveness_noise: float,
+        click_noise: float,
+        carousel_length: float,
+        gamma: float,
+        random_state: int,
     ):
         self.attractiveness_noise = attractiveness_noise
         self.click_noise = click_noise
         self.position_bias = position_bias
         self.carousel_length = carousel_length
         self.gamma = gamma
+        self.generator = torch.Generator().manual_seed(random_state)
 
     def __call__(self, y: torch.Tensor) -> torch.Tensor:
         n_queries, n_results = y.shape
@@ -25,8 +27,9 @@ class GradedCarousel(UserModel):
         relevance = get_graded_relevance(y, noise=0).reshape(
             n_queries, n_results // self.carousel_length, self.carousel_length
         )
-        attractiveness = relevance + self.attractiveness_noise * torch.randn_like(
-            relevance
+        attractiveness = relevance + self.attractiveness_noise * torch.randn(
+            relevance.size(),
+            generator=self.generator,
         )
         attractiveness = attractiveness.clip(self.click_noise, 1)
         satisfaction = attractiveness
@@ -49,7 +52,8 @@ class GradedCarousel(UserModel):
                     * (1 - y_click[:, :, j - 1] * satisfaction[:, :, j - 1])
                 )
             y_click[:, :, j] = torch.bernoulli(
-                examination[:, :, j] * attractiveness[:, :, j]
+                examination[:, :, j] * attractiveness[:, :, j],
+                generator=self.generator,
             )
 
         y_click = y_click * carousel_examination

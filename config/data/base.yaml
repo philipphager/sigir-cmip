@@ -4,3 +4,4 @@ shuffle: True
 num_workers: 2
 persistent_workers: True
 n_results: 10 # Top n ranking for click datasets
+random_state: 0

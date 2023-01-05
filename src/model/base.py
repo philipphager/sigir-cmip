@@ -17,12 +17,14 @@ class ClickModel(LightningModule, ABC):
         self,
         metrics: List[Metric],
         n_results: int,
+        random_state: int,
         lp_scores: Optional[torch.FloatTensor],
     ):
         super().__init__()
         self.metrics = metrics
         self.n_results = n_results
         self.lp_scores = lp_scores
+        self.generator = torch.Generator().manual_seed(random_state)
 
     @abstractmethod
     def forward(
@@ -53,7 +55,6 @@ class ClickModel(LightningModule, ABC):
 
         metrics = join_metrics(metrics, stage="val")
         self.log_dict(metrics, logger=False)
-        self.logger.log_metrics(metrics, step=self.current_epoch)
 
         return metrics, click_probs
 
@@ -62,6 +63,19 @@ class ClickModel(LightningModule, ABC):
         Log click probabilities.
         """
         click_outputs = outputs[0]
+        click_metrics = [co[0] for co in click_outputs]
+        click_metrics_name = click_metrics[0].keys()
+        click_metrics = torch.stack(
+            [torch.stack(list(op.values()), dim=0) for op in click_metrics], dim=0
+        )
+        click_metrics_dict = {
+            name: val
+            for name, val in zip(click_metrics_name, click_metrics.mean(dim=0))
+        }
+        metrics_dict = click_metrics_dict | outputs[1][0][0]
+        self.logger.log_metrics(metrics_dict, step=self.current_epoch)
+
+        self.logger.log_metrics(metrics_dict, step=self.current_epoch)
         click_probs = torch.stack([co[1] for co in click_outputs]).mean(dim=0)
         self.logger.log_table(
             key="Appendix/click_probs",
@@ -93,9 +107,24 @@ class ClickModel(LightningModule, ABC):
 
         metrics = join_metrics(metrics, stage="test")
         self.log_dict(metrics, logger=False)
-        self.logger.log_metrics(metrics, step=self.current_epoch)
 
         return metrics
+
+    def test_epoch_end(self, outputs):
+        """
+        Log click probabilities.
+        """
+        click_metrics_name = outputs[0][0].keys()
+        click_metrics = torch.stack(
+            [torch.stack(list(op.values()), dim=0) for op in outputs[0]], dim=0
+        )
+        click_metrics_dict = {
+            name: val
+            for name, val in zip(click_metrics_name, click_metrics.mean(dim=0))
+        }
+        metrics_dict = click_metrics_dict | outputs[1][0]
+
+        self.logger.log_metrics(metrics_dict, step=self.current_epoch)
 
     def _get_click_metrics(self, y_predict_click, y_click, n) -> List[Dict[str, float]]:
         return [
@@ -129,13 +158,26 @@ class NeuralClickModel(ClickModel):
         learning_rate: float,
         metrics: List[Metric],
         n_results: int,
+        random_state: int,
         lp_scores: Optional[torch.FloatTensor] = None,
     ):
-        super().__init__(metrics, n_results, lp_scores)
+        super().__init__(metrics, n_results, random_state, lp_scores)
         self.loss = loss
         self.optimizer = optimizer
         self.learning_rate = learning_rate
         self.lp_scores = lp_scores
+
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            module.weight.data.normal_(mean=0.0, std=0.2, generator=self.generator)
+            module.bias.data.normal_(mean=0.0, std=0.2, generator=self.generator)
+        elif isinstance(module, nn.Embedding):
+            module.weight.data.normal_(mean=0.0, std=0.2, generator=self.generator)
+            if module.padding_idx is not None:
+                module.weight.data[module.padding_idx].zero_()
+        elif isinstance(module, nn.GRU):
+            for param in module.parameters():
+                param.data.normal_(mean=0.0, std=0.2, generator=self.generator)
 
     def configure_optimizers(self):
         if self.optimizer == "adam":
@@ -173,10 +215,11 @@ class StatsClickModel(ClickModel, ABC):
         loss: nn.Module,
         metrics: List[Metric],
         n_results: int,
+        random_state: int,
         train_stats: ClickDatasetStats,
         lp_scores: Optional[torch.FloatTensor] = None,
     ):
-        super().__init__(metrics, n_results, lp_scores)
+        super().__init__(metrics, n_results, random_state, lp_scores)
         self.loss = loss
         self.lp_scores = lp_scores
 
