@@ -55,7 +55,6 @@ class ClickModel(LightningModule, ABC):
 
         metrics = join_metrics(metrics, stage="val")
         self.log_dict(metrics, logger=False)
-        self.logger.log_metrics(metrics, step=self.current_epoch)
 
         return metrics, click_probs
 
@@ -64,6 +63,19 @@ class ClickModel(LightningModule, ABC):
         Log click probabilities.
         """
         click_outputs = outputs[0]
+        click_metrics = [co[0] for co in click_outputs]
+        click_metrics_name = click_metrics[0].keys()
+        click_metrics = torch.stack(
+            [torch.stack(list(op.values()), dim=0) for op in click_metrics], dim=0
+        )
+        click_metrics_dict = {
+            name: val
+            for name, val in zip(click_metrics_name, click_metrics.mean(dim=0))
+        }
+        metrics_dict = click_metrics_dict | outputs[1][0][0]
+        self.logger.log_metrics(metrics_dict, step=self.current_epoch)
+
+        self.logger.log_metrics(metrics_dict, step=self.current_epoch)
         click_probs = torch.stack([co[1] for co in click_outputs]).mean(dim=0)
         self.logger.log_table(
             key="Appendix/click_probs",
@@ -95,9 +107,24 @@ class ClickModel(LightningModule, ABC):
 
         metrics = join_metrics(metrics, stage="test")
         self.log_dict(metrics, logger=False)
-        self.logger.log_metrics(metrics, step=self.current_epoch)
 
         return metrics
+
+    def test_epoch_end(self, outputs):
+        """
+        Log click probabilities.
+        """
+        click_metrics_name = outputs[0][0].keys()
+        click_metrics = torch.stack(
+            [torch.stack(list(op.values()), dim=0) for op in outputs[0]], dim=0
+        )
+        click_metrics_dict = {
+            name: val
+            for name, val in zip(click_metrics_name, click_metrics.mean(dim=0))
+        }
+        metrics_dict = click_metrics_dict | outputs[1][0]
+
+        self.logger.log_metrics(metrics_dict, step=self.current_epoch)
 
     def _get_click_metrics(self, y_predict_click, y_click, n) -> List[Dict[str, float]]:
         return [
