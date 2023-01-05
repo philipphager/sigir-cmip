@@ -1,2 +1,3 @@
 _target_: src.data.simulation.logging_policy.NoisyOraclePolicy
 noise: 0.0
+random_state: ${data.random_state}
