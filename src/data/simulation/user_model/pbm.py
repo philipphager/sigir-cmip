@@ -14,10 +14,13 @@ class BinaryPBM(UserModel):
         click_noise: float,
         position_bias: float,
         random_state: int,
+        random_state_increment: int,
     ):
         self.click_noise = click_noise
         self.position_bias = position_bias
-        self.generator = torch.Generator().manual_seed(random_state)
+        self.generator = torch.Generator().manual_seed(
+            random_state + random_state_increment
+        )
 
     def __call__(self, y: torch.Tensor) -> torch.Tensor:
         n_queries, n_results = y.shape
@@ -33,10 +36,13 @@ class GradedPBM(UserModel):
         click_noise: float,
         position_bias: float,
         random_state: int,
+        random_state_increment: int,
     ):
         self.click_noise = click_noise
         self.position_bias = position_bias
-        self.generator = torch.Generator().manual_seed(random_state)
+        self.generator = torch.Generator().manual_seed(
+            random_state + random_state_increment
+        )
 
     def __call__(self, y: torch.Tensor) -> torch.Tensor:
         n_queries, n_results = y.shape

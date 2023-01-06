@@ -18,13 +18,16 @@ class Simulator:
         rank_size: int,
         temperature: int,
         random_state: int,
+        random_state_increment: int,
     ):
         self.user_model = user_model
         self.n_sessions = n_sessions
         self.query_dist = query_dist
         self.rank_size = rank_size
         self.temperature = temperature
-        self.generator = torch.Generator().manual_seed(random_state)
+        self.generator = torch.Generator().manual_seed(
+            random_state + random_state_increment
+        )
 
     def __call__(
         self,

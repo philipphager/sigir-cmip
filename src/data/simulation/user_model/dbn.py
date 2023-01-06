@@ -11,11 +11,14 @@ class GradedDBN(UserModel):
         click_noise: float,
         gamma: float,
         random_state: int,
+        random_state_increment: int,
     ):
         self.attractiveness_noise = attractiveness_noise
         self.click_noise = click_noise
         self.gamma = gamma
-        self.generator = torch.Generator().manual_seed(random_state)
+        self.generator = torch.Generator().manual_seed(
+            random_state + random_state_increment
+        )
 
     def __call__(self, y: torch.Tensor) -> torch.Tensor:
         n_queries, n_results = y.shape
@@ -57,12 +60,15 @@ class MixtureDBN(UserModel):
         gamma: float,
         mixture_param: float,
         random_state: int,
+        random_state_increment: int,
     ):
         self.attractiveness_noise = attractiveness_noise
         self.click_noise = click_noise
         self.gamma = gamma
         self.mixture_param = mixture_param
-        self.generator = torch.Generator().manual_seed(random_state)
+        self.generator = torch.Generator().manual_seed(
+            random_state + random_state_increment
+        )
 
     def __call__(self, y: torch.Tensor) -> torch.Tensor:
         n_queries, n_results = y.shape
@@ -86,13 +92,6 @@ class MixtureDBN(UserModel):
         )
         td_idx = torch.nonzero(mixture).squeeze()
         bu_idx = torch.nonzero(1 - mixture).squeeze()
-
-        print(examination[td_idx, 1].dtype)
-        print(td_idx.dtype)
-        print(y_click.dtype)
-        print(examination.dtype)
-        print(satisfaction.dtype)
-
         # Top-down
         for i in range(n_results):
             if i > 0:

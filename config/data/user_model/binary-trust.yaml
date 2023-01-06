@@ -1,3 +1,4 @@
 _target_: src.data.simulation.user_model.BinaryTrustBias
 position_bias: 0.8
 random_state: ${random_state}
+random_state_increment: 0

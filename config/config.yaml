@@ -50,3 +50,8 @@ random_state: 0
 base_dir: ???
 experiment_name: test-exp
 run_name: test-run
+
+
+train: 0
+val: 1
+test: 2

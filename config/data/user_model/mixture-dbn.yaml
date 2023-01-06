@@ -4,3 +4,4 @@ click_noise: 0.1
 gamma: 0.7
 mixture_param: 0.7
 random_state: ${random_state}
+random_state_increment: 0

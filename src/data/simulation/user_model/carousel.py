@@ -13,13 +13,16 @@ class GradedCarousel(UserModel):
         carousel_length: float,
         gamma: float,
         random_state: int,
+        random_state_increment: int,
     ):
         self.attractiveness_noise = attractiveness_noise
         self.click_noise = click_noise
         self.position_bias = position_bias
         self.carousel_length = carousel_length
         self.gamma = gamma
-        self.generator = torch.Generator().manual_seed(random_state)
+        self.generator = torch.Generator().manual_seed(
+            random_state + random_state_increment
+        )
 
     def __call__(self, y: torch.Tensor) -> torch.Tensor:
         n_queries, n_results = y.shape
