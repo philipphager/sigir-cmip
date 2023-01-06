@@ -78,35 +78,47 @@ class MixtureDBN(UserModel):
         attractiveness = attractiveness.clip(self.click_noise, 1)
 
         satisfaction = relevance
-        examination = torch.ones_like(y).float()
+        examination = torch.ones_like(y)  # .float()
         y_click = torch.zeros_like(y)
 
-        if torch.rand(1, generator=self.generator) <= self.mixture_param:
-            for i in range(n_results):
-                if i > 0:
-                    examination[:, i] = (
-                        examination[:, i - 1]
-                        * self.gamma
-                        * (1 - y_click[:, i - 1] * satisfaction[:, i - 1])
-                    )
+        mixture = torch.bernoulli(
+            self.mixture_param * torch.ones(n_queries), generator=self.generator
+        )
+        td_idx = torch.nonzero(mixture).squeeze()
+        bu_idx = torch.nonzero(1 - mixture).squeeze()
 
-                y_click[:, i] = torch.bernoulli(
-                    examination[:, i] * attractiveness[:, i],
-                    generator=self.generator,
+        print(examination[td_idx, 1].dtype)
+        print(td_idx.dtype)
+        print(y_click.dtype)
+        print(examination.dtype)
+        print(satisfaction.dtype)
+
+        # Top-down
+        for i in range(n_results):
+            if i > 0:
+                examination[td_idx, i] = (
+                    examination[td_idx, i - 1]
+                    * self.gamma
+                    * (1 - y_click[td_idx, i - 1] * satisfaction[td_idx, i - 1])
                 )
 
-        else:
-            for i in range(n_results, 0, -1):
-                if i < n_results:
-                    examination[:, i - 1] = (
-                        examination[:, i]
-                        * self.gamma
-                        * (1 - y_click[:, i] * satisfaction[:, i])
-                    )
+            y_click[td_idx, i] = torch.bernoulli(
+                examination[td_idx, i] * attractiveness[td_idx, i],
+                generator=self.generator,
+            )
 
-                y_click[:, i - 1] = torch.bernoulli(
-                    examination[:, i - 1] * attractiveness[:, i - 1],
-                    generator=self.generator,
+        # Bottom-up
+        for i in range(n_results, 0, -1):
+            if i < n_results:
+                examination[bu_idx, i - 1] = (
+                    examination[bu_idx, i]
+                    * self.gamma
+                    * (1 - y_click[bu_idx, i] * satisfaction[bu_idx, i])
                 )
+
+            y_click[bu_idx, i - 1] = torch.bernoulli(
+                examination[bu_idx, i - 1] * attractiveness[bu_idx, i - 1],
+                generator=self.generator,
+            )
 
         return y_click
