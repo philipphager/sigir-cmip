@@ -26,7 +26,6 @@ class UBM(NeuralClickModel):
 
         self.relevance = nn.Sequential(nn.Embedding(n_documents, 1), nn.Sigmoid())
         self.examination = nn.Sequential(nn.Embedding(n_results**2, 1), nn.Sigmoid())
-        # self.apply(self._init_weights)
 
     def forward(
         self,

@@ -73,7 +73,6 @@ class ClickModel(LightningModule, ABC):
             for name, val in zip(click_metrics_name, click_metrics.mean(dim=0))
         }
         metrics_dict = click_metrics_dict | outputs[1][0][0]
-        print(metrics_dict)
         self.logger.log_metrics(metrics_dict, step=self.current_epoch)
 
         click_probs = torch.stack([co[1] for co in click_outputs]).mean(dim=0)
@@ -106,7 +105,7 @@ class ClickModel(LightningModule, ABC):
                 metrics += self._get_policy_metrics(y_predict, y_lp, y, n)
 
         metrics = join_metrics(metrics, stage="test")
-        # self.log_dict(metrics, logger=False)
+        self.log_dict(metrics, logger=False)
 
         return metrics
 
@@ -123,8 +122,6 @@ class ClickModel(LightningModule, ABC):
             for name, val in zip(click_metrics_name, click_metrics.mean(dim=0))
         }
         metrics_dict = click_metrics_dict | outputs[1][0]
-
-        print(metrics_dict)
         self.logger.log_metrics(metrics_dict, step=self.current_epoch)
 
     def _get_click_metrics(self, y_predict_click, y_click, n) -> List[Dict[str, float]]:
@@ -167,18 +164,6 @@ class NeuralClickModel(ClickModel):
         self.optimizer = optimizer
         self.learning_rate = learning_rate
         self.lp_scores = lp_scores
-
-    def _init_weights(self, module):
-        if isinstance(module, nn.Linear):
-            module.weight.data.normal_(mean=0.0, std=0.2, generator=self.generator)
-            module.bias.data.normal_(mean=0.0, std=0.2, generator=self.generator)
-        elif isinstance(module, nn.Embedding):
-            module.weight.data.normal_(mean=0.0, std=0.2, generator=self.generator)
-            if module.padding_idx is not None:
-                module.weight.data[module.padding_idx].zero_()
-        elif isinstance(module, nn.GRU):
-            for param in module.parameters():
-                param.data.normal_(mean=0.0, std=0.2, generator=self.generator)
 
     def configure_optimizers(self):
         if self.optimizer == "adam":

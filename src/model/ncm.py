@@ -46,8 +46,6 @@ class NCM(NeuralClickModel):
 
         self.reduction = nn.Sequential(nn.Linear(inner_state_dim, 1), nn.Sigmoid())
 
-        # self.apply(self._init_weights)
-
     def forward(
         self,
         q: torch.Tensor,

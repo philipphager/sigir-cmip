@@ -33,8 +33,6 @@ class DBN(NeuralClickModel):
         else:
             self.gamma = nn.Embedding.from_pretrained(torch.ones((1, 1)))
 
-        # self.apply(self._init_weights)
-
     def forward(
         self,
         q: torch.Tensor,
