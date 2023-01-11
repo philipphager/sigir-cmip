@@ -51,15 +51,15 @@ class ClassifierKLDivergence(KLDivergence):
 
     @staticmethod
     def train(model: Any, train: torch.Tensor):
-        x = train[:, :3].numpy()
-        y = train[:, 3].numpy()
+        x = train[:, :3].cpu().numpy()
+        y = train[:, 3].cpu().numpy()
         model.fit(x, y)
 
         return model
 
     @staticmethod
     def predict(model: Any, test: torch.Tensor, eta: float):
-        x = test[:, :3].numpy()
+        x = test[:, :3].cpu().numpy()
         y_predict = torch.tensor(model.predict_proba(x)[:, 1])
         # Clip predictions to avoid exploding likelihood ratios
         return y_predict.clip(eta, 1 - eta)

@@ -81,16 +81,16 @@ class PointwiseClassifierCITest(PolicyMetric):
 
     @staticmethod
     def train_classifier(model: Any, train: torch.Tensor):
-        x = train[:, :3].numpy()
-        y = train[:, 3].numpy()
+        x = train[:, :3].cpu().numpy()
+        y = train[:, 3].cpu().numpy()
         model.fit(x, y)
 
         return model
 
     @staticmethod
     def evaluate(model: Any, test: torch.Tensor):
-        x = test[:, :3]
-        y = test[:, 3]
+        x = test[:, :3].cpu()
+        y = test[:, 3].cpu()
 
         y_predict = torch.tensor(model.predict(x.numpy()))
         zero_one_loss = (y_predict != y).float().mean()
