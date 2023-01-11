@@ -58,7 +58,7 @@ class UBM(NeuralClickModel):
         self.logger.log_table(
             key="Appendix/propensities",
             columns=[str(i) for i in range(1, self.n_results + 1)],
-            data=self.examination(torch.arange(self.n_results**2))
+            data=self.examination(torch.arange(self.n_results**2, device=self.device))
             .reshape(self.n_results, self.n_results)
             .triu()
             .transpose(0, 1)
