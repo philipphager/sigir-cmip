@@ -24,5 +24,5 @@ python main.py -m \
   data/query_dist@data.test_simulator.query_dist="$query_dist" \
   data/logging_policy@data.train_policy=noisy-oracle,lambda-mart \
   data/logging_policy@data.test_policy=uniform \
-  model=dctr,ranked-dctr,pbm,ubm,dbn,ncm \
+  model=dctr,ranked-dctr,pbm,ubm,dbn,cacm,ncm \
   $@
