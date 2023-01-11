@@ -16,12 +16,11 @@ def join_metrics(metrics: List[Dict[str, float]], stage: str = "") -> Dict[str, 
 
     return output
 
-
 def add_label(x: torch.Tensor, label: int):
     """
     Adds a new column to a tensor containing the given label
     """
-    labels = torch.full((len(x), 1), label)
+    labels = torch.full((len(x), 1), label, device=x.device)
     return torch.hstack([x, labels])
 
 
@@ -29,7 +28,7 @@ def random_split(x: torch.Tensor, splits: int):
     """
     Shuffle and split a tensor into equal parts
     """
-    idx = torch.randperm(len(x))
+    idx = torch.randperm(len(x), device=x.device)
     return torch.chunk(x[idx], splits)
 
 
