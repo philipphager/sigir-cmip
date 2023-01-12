@@ -7,7 +7,7 @@ from torch import nn
 
 from src.data.dataset import ClickDatasetStats
 from src.evaluation.base import ClickMetric, Metric, PolicyMetric, RelevanceMetric
-from src.evaluation.util import join_metrics
+from src.evaluation.util import join_metrics, sample_policy_data
 
 CLICK_DATASET_IDX = 0
 
@@ -100,9 +100,16 @@ class ClickModel(LightningModule, ABC):
             y_lp = self.lp_scores.to(self.device)
             metrics += self._get_relevance_metrics(y_predict, y, n)
 
+            # FIXME: Remove null check when Yandex has a logging policy.
             if self.lp_scores is not None:
-                # FIXME: Remove null check when Yandex has a logging policy.
                 metrics += self._get_policy_metrics(y_predict, y_lp, y, n)
+                policy_df = sample_policy_data(y_predict, y_lp, y, n, n_samples=10_000)
+
+                self.logger.log_table(
+                    key="Appendix/policy",
+                    dataframe=policy_df,
+                    step=self.current_epoch,
+                )
 
         metrics = join_metrics(metrics, stage="test")
         self.log_dict(metrics, logger=False)

@@ -1,3 +1,4 @@
+#!/bin/bash
 currentDate=`date +'%s'`
 
 python train.py hydra.job_logging.root.level=WARNING +datetime="$currentDate" $@

@@ -66,7 +66,10 @@ class NCM(NeuralClickModel):
                         [
                             self.query_embedd(q).unsqueeze(1),
                             torch.zeros(
-                                n_batch, 1, self.doc_embedd_dim + self.click_embedd_dim
+                                n_batch,
+                                1,
+                                self.doc_embedd_dim + self.click_embedd_dim,
+                                device=self.device
                             ),
                         ],
                         dim=2,

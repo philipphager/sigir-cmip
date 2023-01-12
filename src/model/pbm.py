@@ -50,7 +50,7 @@ class PBM(NeuralClickModel):
         self.logger.log_table(
             key="Appendix/propensities",
             columns=[str(i) for i in range(1, self.n_results + 1)],
-            data=self.examination(torch.arange(self.n_results))
+            data=self.examination(torch.arange(self.n_results, device=self.device))
             .transpose(0, 1)
             .tolist(),
         )

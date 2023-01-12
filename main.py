@@ -67,6 +67,7 @@ def main(config: DictConfig):
         trainer.validate(model, dataset)
         trainer.save_checkpoint(checkpoint_path)
 
+    trainer = instantiate(config.test_trainer, logger=wandb_logger)
     trainer.test(model, dataset, ckpt_path=checkpoint_path)
     wandb.finish()
 
