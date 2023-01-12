@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+import pandas as pd
 import torch
 
 
@@ -15,6 +16,7 @@ def join_metrics(metrics: List[Dict[str, float]], stage: str = "") -> Dict[str, 
             output[f"Metrics/{stage}/{k}"] = v
 
     return output
+
 
 def add_label(x: torch.Tensor, label: int):
     """
@@ -55,3 +57,21 @@ def hstack(
             y_true.ravel(),
         ]
     )
+
+
+def sample_policy_data(
+    y_predict: torch.Tensor,
+    y_logging_policy: torch.Tensor,
+    y: torch.LongTensor,
+    n: torch.Tensor,
+    n_samples: int,
+) -> pd.DataFrame:
+    n_batch, n_results = y.shape
+    mask = padding_mask(n, n_batch, n_results)
+    dataset = hstack(y_predict, y_logging_policy, y)
+    dataset = dataset[mask.ravel()]
+
+    return pd.DataFrame(
+        dataset.cpu().numpy(),
+        columns=["y_predict", "y_logging_policy", "y"],
+    ).head(n_samples)
