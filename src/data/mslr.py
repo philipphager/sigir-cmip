@@ -199,7 +199,8 @@ class MSLR(pl.LightningDataModule):
 
     def get_n_documents(self) -> int:
         self.assert_setup()
-        return self.dataset.n.sum()
+        # # documents plus padding index 0
+        return self.dataset.n.sum() + 1
 
     def get_n_queries(self) -> int:
         self.assert_setup()
