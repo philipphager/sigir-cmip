@@ -77,17 +77,12 @@ class RatingLoader(Loader[RatingDataset]):
             f"split: {split}, features: {load_features}"
         )
 
-        path = self.output_directory / f"{self.name}-{self.fold}-{split}.parquet"
+        df = self._parse(split)
 
-        if not path.exists():
-            df = self._parse(split)
+        if self.pipeline is not None:
+            df = self.pipeline(df)
 
-            if self.pipeline is not None:
-                df = self.pipeline(df)
-
-            df.to_parquet(path)
-
-        return FeatureRatingDataset(path) if load_features else RatingDataset(path)
+        return FeatureRatingDataset(df) if load_features else RatingDataset(df)
 
     @property
     @abstractmethod

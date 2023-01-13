@@ -18,10 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class RatingDataset(Dataset):
-    def __init__(self, path: Union[str, Path]):
-        self.path = path
-
-        df = pd.read_parquet(self.path)
+    def __init__(self, df: pd.DataFrame):
         assert all([c in df.columns for c in ["query_id", "doc_ids", "relevance"]])
 
         self.query_id = torch.tensor(df["query_id"])
@@ -44,10 +41,7 @@ class RatingDataset(Dataset):
 
 
 class FeatureRatingDataset(Dataset):
-    def __init__(self, path: Union[str, Path]):
-        self.path = path
-
-        df = pd.read_parquet(self.path)
+    def __init__(self, df: pd.DataFrame):
         assert all(
             [c in df.columns for c in ["query_id", "doc_ids", "features", "relevance"]]
         )
