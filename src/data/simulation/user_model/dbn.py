@@ -123,14 +123,6 @@ class MixtureDBN(UserModel):
                 generator=self.generator,
             )
 
-        print(attractiveness[bu_idx][:5])
-        print(examination[bu_idx][:5])
-        print(y_click[bu_idx][:5])
-        print("------------")
-        print(attractiveness[td_idx][:5])
-        print(examination[td_idx][:5])
-        print(y_click[td_idx][:5])
-
         return y_click
 
     def get_optimal_order(self, n_results) -> torch.LongTensor:
