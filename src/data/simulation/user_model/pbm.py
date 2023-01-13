@@ -29,6 +29,11 @@ class BinaryPBM(UserModel):
         examination = get_position_bias(n_results, self.position_bias)
         return torch.bernoulli(relevance * examination, generator=self.generator)
 
+    def get_optimal_order(self, n_results) -> torch.LongTensor:
+        return torch.argsort(
+            get_position_bias(n_results, self.position_bias), descending=True
+        )
+
 
 class GradedPBM(UserModel):
     def __init__(
@@ -50,3 +55,8 @@ class GradedPBM(UserModel):
         relevance = get_graded_relevance(y, self.click_noise)
         examination = get_position_bias(n_results, self.position_bias)
         return torch.bernoulli(relevance * examination, generator=self.generator)
+
+    def get_optimal_order(self, n_results) -> torch.LongTensor:
+        return torch.argsort(
+            get_position_bias(n_results, self.position_bias), descending=True
+        )

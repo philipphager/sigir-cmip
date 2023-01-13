@@ -51,6 +51,9 @@ class GradedDBN(UserModel):
 
         return y_click
 
+    def get_optimal_order(self, n_results) -> torch.LongTensor:
+        return torch.arange(n_results)
+
 
 class MixtureDBN(UserModel):
     def __init__(
@@ -120,4 +123,20 @@ class MixtureDBN(UserModel):
                 generator=self.generator,
             )
 
+        print(attractiveness[bu_idx][:5])
+        print(examination[bu_idx][:5])
+        print(y_click[bu_idx][:5])
+        print("------------")
+        print(attractiveness[td_idx][:5])
+        print(examination[td_idx][:5])
+        print(y_click[td_idx][:5])
+
         return y_click
+
+    def get_optimal_order(self, n_results) -> torch.LongTensor:
+        prior_exposure = self.mixture_param * torch.tensor(self.gamma).pow(
+            torch.arange(n_results)
+        ) + (1 - self.mixture_param) * torch.tensor(self.gamma).pow(
+            torch.arange(n_results - 1, -1, -1)
+        )
+        return torch.argsort(prior_exposure, descending=True)
