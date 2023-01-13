@@ -120,3 +120,18 @@ class SampleQueries(Step):
         )
 
         return df[df["query_id"].isin(query_df["query_id"])]
+
+
+class DiscardNonRelevantQueries(Step):
+    def __init__(self, min_relevance: int):
+        self.min_relevance = min_relevance
+
+    def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
+        logger.info(
+            f"Discarding queries without any document "
+            f"of relevance: {self.min_relevance} or above"
+        )
+        query_df = df.groupby("query_id").agg(max_y=("y", "max")).reset_index()
+        query_df = query_df[query_df.max_y >= self.min_relevance]
+
+        return df[df["query_id"].isin(query_df["query_id"])]
