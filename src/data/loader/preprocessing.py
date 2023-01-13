@@ -98,3 +98,21 @@ class GenerateDocumentIds(Step):
         logger.info("Generating surrogate document ids")
         df["doc_id"] = np.arange(len(df)) + 1
         return df
+
+
+class SampleQueries(Step):
+    def __init__(self, n_queries: int, random_state: int):
+        self.n_queries = n_queries
+        self.random_state = random_state
+
+    def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
+        logger.info(f"Sampling queries {self.n_queries} / {df.query_id.nunique()}")
+
+        query_df = (
+            df["query_id"]
+            .drop_duplicates()
+            .sample(self.n_queries, random_state=self.random_state)
+            .reset_index()
+        )
+
+        return df[df["query_id"].isin(query_df["query_id"])]
