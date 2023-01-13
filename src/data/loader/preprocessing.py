@@ -36,12 +36,16 @@ class Pipeline:
         if "features" in df.columns:
             agg["features"] = list
 
-        return (
+        df = (
             df.groupby("query_id")
             .aggregate(agg)
             .reset_index()
             .rename(columns={"doc_id": "doc_ids", "y": "relevance"})
         )
+
+        df["query_id"] = np.arange(len(df)) + 1
+
+        return df
 
 
 class StratifiedTruncate(Step):
