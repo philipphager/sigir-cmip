@@ -2,6 +2,6 @@ _target_: src.data.simulation.user_model.GradedCarousel
 attractiveness_noise: 0.1
 click_noise: 0.1
 gamma: 0.75
-position_bias: 0.9
+position_bias: 1.0
 random_state: ${random_state}
 random_state_increment: 0
