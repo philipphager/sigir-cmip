@@ -59,6 +59,16 @@ class MSLR(pl.LightningDataModule):
     def setup(self, stage: Optional[str] = None):
         @cache(
             self.config.base_dir,
+            "cache/rating_dataset",
+            [
+                self.config.data.rating_loader,
+            ],
+        )
+        def get_dataset():
+            return self.rating_loader.load(split="train")
+
+        @cache(
+            self.config.base_dir,
             "cache/train_policy",
             [
                 self.config.data.rating_loader,
@@ -146,7 +156,7 @@ class MSLR(pl.LightningDataModule):
 
             return ClickDatasetStats(rank_clicks, rank_impressions)
 
-        self.dataset = self.rating_loader.load(split="train")
+        self.dataset = get_dataset()
         self.train_policy_scores = train_policy_scores()
 
         if stage == TrainerFn.FITTING:
