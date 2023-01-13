@@ -96,5 +96,5 @@ class DiscardShortQueries(Step):
 class GenerateDocumentIds(Step):
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
         logger.info("Generating surrogate document ids")
-        df["doc_id"] = np.arange(len(df))
+        df["doc_id"] = np.arange(len(df)) + 1
         return df
