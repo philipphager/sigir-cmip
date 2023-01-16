@@ -18,7 +18,7 @@ train_simulator:
   query_dist: ???
   n_sessions: 5_000_000
   rank_size: ${data.n_results}
-  temperature: 1
+  temperature: 0.1
   random_state: ${random_state}
   random_state_increment: 0
 val_simulator:
@@ -27,7 +27,7 @@ val_simulator:
   query_dist: ???
   n_sessions: 1_000_000
   rank_size: ${data.n_results}
-  temperature: 1
+  temperature: 0.1
   random_state: ${random_state}
   random_state_increment: 1
 test_simulator:
