@@ -13,8 +13,6 @@ pipeline:
       random_state: "${data.random_state}"
     - _target_: src.data.loader.preprocessing.DiscardShortQueries
       min_length: "${data.n_results}"
-    - _target_: src.data.loader.preprocessing.DiscardNonRelevantQueries
-      min_relevance: 1
     - _target_: src.data.loader.preprocessing.Shuffle
       random_state: "${data.random_state}"
     - _target_: src.data.loader.preprocessing.GenerateDocumentIds
