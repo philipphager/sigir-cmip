@@ -9,7 +9,7 @@ pipeline:
   _target_: src.data.loader.preprocessing.Pipeline
   steps:
     - _target_: src.data.loader.preprocessing.StratifiedTruncate
-      max_length: 100
+      max_length: 10
       random_state: "${data.random_state}"
     - _target_: src.data.loader.preprocessing.DiscardShortQueries
       min_length: "${data.n_results}"
