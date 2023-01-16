@@ -10,7 +10,7 @@ def get_binary_relevance(y: torch.Tensor, noise: float) -> torch.Tensor:
 
 
 def get_graded_relevance(y: torch.Tensor, noise: float) -> torch.Tensor:
-    return (y / 4).clip(min=noise)
+    return noise + (1 - noise) * (2**y - 1) / (2**4 - 1)
 
 
 def get_true_positive_ctr(n_results: int):
