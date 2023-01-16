@@ -43,6 +43,7 @@ class Pipeline:
             .rename(columns={"doc_id": "doc_ids", "y": "relevance"})
         )
 
+        # Replace original query ids by sequential ids
         df["query_id"] = np.arange(len(df)) + 1
 
         return df
