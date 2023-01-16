@@ -1,8 +1,8 @@
 import torch
 
 
-def get_position_bias(n_results: int, factor: float) -> torch.Tensor:
-    return torch.tensor(factor).pow(torch.arange(n_results))
+def get_position_bias(n_results: int, strength: float) -> torch.Tensor:
+    return (1 / (torch.arange(n_results) + 1)) ** strength
 
 
 def get_binary_relevance(y: torch.Tensor, noise: float) -> torch.Tensor:

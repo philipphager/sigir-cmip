@@ -1,5 +1,5 @@
 _target_: src.data.simulation.user_model.BinaryPBM
 click_noise: 0.1
-position_bias: 0.8
+position_bias: 1.0
 random_state: ${random_state}
 random_state_increment: 0
