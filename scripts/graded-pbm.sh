@@ -1,8 +1,8 @@
 #!/bin/bash
 
 datetime=`date +'%s'`
-experiment_name="debug"
-run_name="graded-pbm_uniform"
+experiment_name="sweep"
+run_name="graded-pbm"
 user_model="graded-pbm"
 query_dist="uniform"
 
@@ -25,4 +25,5 @@ python main.py -m \
   data/logging_policy@data.train_policy=noisy-oracle,lambda-mart \
   data/logging_policy@data.test_policy=uniform \
   model=dctr,ranked-dctr,pbm,ubm,dbn,cacm-minus,ncm \
+  random_state=30219,76665,88914,11656,43670 \
   $@
