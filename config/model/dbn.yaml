@@ -5,3 +5,4 @@ _target_: src.model.DBN
 optimizer: adam
 learning_rate: 0.001
 estimate_gamma: True
+gamma_init: 10

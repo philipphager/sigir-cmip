@@ -17,6 +17,7 @@ class DBN(NeuralClickModel):
         n_results: int,
         random_state: int,
         estimate_gamma: bool,
+        gamma_init: float,
         metrics: List[Metric],
         lp_scores: torch.FloatTensor = None,
         **kwargs,
@@ -30,6 +31,7 @@ class DBN(NeuralClickModel):
 
         if estimate_gamma:
             self.gamma = nn.Sequential(nn.Embedding(1, 1), nn.Sigmoid())
+            nn.init.constant_(self.gamma[0].weight, gamma_init)
         else:
             self.gamma = nn.Embedding.from_pretrained(torch.ones((1, 1)))
 
@@ -55,6 +57,14 @@ class DBN(NeuralClickModel):
             examination = torch.cumprod(exam_rank, dim=1)
 
             y_predict = examination * attractiveness
+
             return y_predict, relevance
         else:
             return relevance
+
+    def on_train_end(self):
+        self.logger.log_table(
+            key="Appendix/gamma",
+            columns=["gamma"],
+            data=[[self.gamma(torch.tensor(0)).item()]],
+        )
