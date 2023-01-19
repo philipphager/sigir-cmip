@@ -62,3 +62,12 @@ class GradedCarousel(UserModel):
         y_click = y_click * carousel_examination
 
         return y_click.reshape(n_queries, n_results)
+
+    def get_optimal_order(self, n_results) -> torch.LongTensor:
+        prior_exposure = (
+            get_position_bias(n_results // self.carousel_length, self.position_bias)
+            .unsqueeze(1)
+            .expand(-1, self.carousel_length)
+        )
+        prior_exposure *= self.gamma.pow(torch.arange(self.carousel_length))
+        return torch.argsort(prior_exposure, descending=True)

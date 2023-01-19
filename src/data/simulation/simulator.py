@@ -51,6 +51,8 @@ class Simulator:
         noise = torch.rand(y_predict.size(), generator=self.generator)
         y_predict = y_predict - self.temperature * torch.log(-torch.log(noise))
         idx = torch.argsort(-y_predict)[:, : self.rank_size]
+        optimal_order = self.user_model.get_optimal_order(self.rank_size)
+        idx = idx[:, optimal_order]
         x_impressed = torch.gather(x, 1, idx)
         y_impressed = torch.gather(y, 1, idx)
         n = n.clamp(max=self.rank_size)

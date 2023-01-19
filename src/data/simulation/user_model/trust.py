@@ -38,6 +38,11 @@ class BinaryTrustBias(UserModel):
 
         return torch.bernoulli(click_probabilities, generator=self.generator)
 
+    def get_optimal_order(self, n_results) -> torch.LongTensor:
+        return torch.argsort(
+            get_position_bias(n_results, self.position_bias), descending=True
+        )
+
 
 class GradedTrustBias(UserModel):
     """
@@ -67,3 +72,8 @@ class GradedTrustBias(UserModel):
         )
 
         return torch.bernoulli(click_probabilities, generator=self.generator)
+
+    def get_optimal_order(self, n_results) -> torch.LongTensor:
+        return torch.argsort(
+            get_position_bias(n_results, self.position_bias), descending=True
+        )
