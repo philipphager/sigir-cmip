@@ -80,6 +80,10 @@ def hash_config(config: DictConfig, datetime: str = None):
 
 
 def get_checkpoint_directory(config: DictConfig) -> Path:
+    checkpoint_config = dict(config.copy())
+    checkpoint_config.pop("datetime", None)
+    checkpoint_config.pop("train_val_trainer.strategy", None)
+
     checkpoint_dir = Path(config.base_dir) / "checkpoints"
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
-    return checkpoint_dir / f"{hash_config(config)}.ckpt"
+    return checkpoint_dir / f"{hash_config(checkpoint_config)}.ckpt"
