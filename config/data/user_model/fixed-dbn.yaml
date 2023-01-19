@@ -1,5 +1,6 @@
 _target_: src.data.simulation.user_model.GradedDBN
 click_noise: 0.1
+satisfaction: 0.3
 gamma: 0.8
 random_state: ${random_state}
 random_state_increment: 0
