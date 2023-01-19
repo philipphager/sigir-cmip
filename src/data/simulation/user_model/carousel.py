@@ -67,7 +67,9 @@ class GradedCarousel(UserModel):
         prior_exposure = (
             get_position_bias(n_results // self.carousel_length, self.position_bias)
             .unsqueeze(1)
-            .expand(-1, self.carousel_length)
+            .repeat(1, self.carousel_length)
         )
-        prior_exposure *= self.gamma.pow(torch.arange(self.carousel_length))
-        return torch.argsort(prior_exposure, descending=True)
+        prior_exposure *= torch.tensor(self.gamma).pow(
+            torch.arange(self.carousel_length)
+        )
+        return torch.argsort(prior_exposure.flatten(), descending=True)
