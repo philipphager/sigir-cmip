@@ -64,5 +64,5 @@ class DBN(NeuralClickModel):
         self.logger.log_table(
             key="Appendix/gamma",
             columns=["gamma"],
-            data=[[self.gamma(torch.tensor(0)).item()]],
+            data=[[self.gamma(torch.tensor(0, device=self.device)).item()]],
         )
