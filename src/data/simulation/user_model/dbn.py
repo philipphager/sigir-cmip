@@ -7,13 +7,11 @@ from src.data.simulation.user_model.util import get_graded_relevance
 class GradedDBN(UserModel):
     def __init__(
         self,
-        attractiveness_noise: float,
         click_noise: float,
         gamma: float,
         random_state: int,
         random_state_increment: int,
     ):
-        self.attractiveness_noise = attractiveness_noise
         self.click_noise = click_noise
         self.gamma = gamma
         self.generator = torch.Generator().manual_seed(
@@ -23,16 +21,9 @@ class GradedDBN(UserModel):
     def __call__(self, y: torch.Tensor) -> torch.Tensor:
         n_queries, n_results = y.shape
 
-        relevance = get_graded_relevance(y, noise=0)
+        attractiveness = (y / 4).clip(self.click_noise)
+        satisfaction = y / 8
 
-        # Use noisy relevance as attractiveness, add min attractiveness
-        noise = self.attractiveness_noise * torch.randn(
-            relevance.size(), generator=self.generator
-        )
-        attractiveness = relevance + noise
-        attractiveness = attractiveness.clip(self.click_noise, 1)
-
-        satisfaction = relevance
         examination = torch.ones_like(y).float()
         y_click = torch.zeros_like(y)
 
@@ -42,6 +33,48 @@ class GradedDBN(UserModel):
                     examination[:, i - 1]
                     * self.gamma
                     * (1 - y_click[:, i - 1] * satisfaction[:, i - 1])
+                )
+
+            y_click[:, i] = torch.bernoulli(
+                examination[:, i] * attractiveness[:, i],
+                generator=self.generator,
+            )
+
+        return y_click
+
+    def get_optimal_order(self, n_results) -> torch.LongTensor:
+        return torch.arange(n_results)
+
+
+class FixedDBN(UserModel):
+    def __init__(
+        self,
+        click_noise: float,
+        satisfaction: float,
+        gamma: float,
+        random_state: int,
+        random_state_increment: int,
+    ):
+        self.click_noise = click_noise
+        self.satisfaction = satisfaction
+        self.gamma = gamma
+        self.generator = torch.Generator().manual_seed(
+            random_state + random_state_increment
+        )
+
+    def __call__(self, y: torch.Tensor) -> torch.Tensor:
+        n_queries, n_results = y.shape
+
+        attractiveness = y / 4
+        examination = torch.ones_like(y).float()
+        y_click = torch.zeros_like(y)
+
+        for i in range(n_results):
+            if i > 0:
+                examination[:, i] = (
+                    examination[:, i - 1]
+                    * self.gamma
+                    * (1 - y_click[:, i - 1] * self.satisfaction)
                 )
 
             y_click[:, i] = torch.bernoulli(
