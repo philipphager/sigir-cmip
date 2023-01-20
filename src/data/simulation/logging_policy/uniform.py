@@ -15,7 +15,7 @@ class UniformPolicy(LoggingPolicy):
     def predict(self, dataset: RatingDataset) -> torch.Tensor:
         query_ids, x, y, n = dataset[:]
 
-        y = torch.rand(y.size(), generator=self.generator)
+        y = torch.ones_like(y).float() / n.unsqueeze(1)
         y = mask_padding(y, n, -torch.inf)
 
         return y

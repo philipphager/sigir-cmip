@@ -21,6 +21,7 @@ multirun
 message.txt
 cmd.txt
 slurm*
+cache.sh
 tmp*
 config/broom
 *.lprof
