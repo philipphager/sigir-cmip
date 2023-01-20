@@ -44,7 +44,8 @@ def main(config: DictConfig):
     early_stopping = instantiate(config.early_stopping)
     progress_bar = instantiate(config.progress_bar)
     model_checkpoint = instantiate(
-        config.model_checkpoint, filename=hash_config(config)
+        config.model_checkpoint,
+        filename=str(checkpoint_path).split("/")[-1].split(".")[0],
     )
 
     trainer = instantiate(
