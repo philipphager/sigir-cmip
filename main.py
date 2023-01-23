@@ -3,11 +3,11 @@ import os
 import warnings
 
 import hydra
-import wandb
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import seed_everything
 
+import wandb
 from src.model.base import NeuralClickModel, StatsClickModel
 from src.util.file import get_checkpoint_directory, hash_config
 from src.util.hydra import ConfigWrapper
@@ -41,7 +41,8 @@ def main(config: DictConfig):
     early_stopping = instantiate(config.early_stopping)
     progress_bar = instantiate(config.progress_bar)
     model_checkpoint = instantiate(
-        config.model_checkpoint, filename=hash_config(config)
+        config.model_checkpoint,
+        filename=str(checkpoint_path).split("/")[-1].split(".")[0],
     )
 
     trainer = instantiate(
