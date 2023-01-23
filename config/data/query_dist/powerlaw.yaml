@@ -1,3 +1,4 @@
 _target_: src.data.simulation.query_dist.PowerLawQueryDist
 alpha: 1.12
 random_state: ${data.random_state}
+random_state_increment: 0
