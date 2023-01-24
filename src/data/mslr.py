@@ -57,24 +57,9 @@ class MSLR(pl.LightningDataModule):
         self.train_stats = None
 
     def setup(self, stage: Optional[str] = None):
-        @cache(
-            self.config.base_dir,
-            "cache/rating_dataset",
-            [
-                self.config.data.rating_loader,
-            ],
-        )
         def get_dataset():
             return self.rating_loader.load(split="train")
 
-        @cache(
-            self.config.base_dir,
-            "cache/train_policy",
-            [
-                self.config.data.rating_loader,
-                self.config.data.train_policy,
-            ],
-        )
         def train_policy_scores():
             dataset = self.rating_loader.load(
                 split="train",
@@ -83,14 +68,6 @@ class MSLR(pl.LightningDataModule):
             self.train_policy.fit(dataset)
             return self.train_policy.predict(dataset)
 
-        @cache(
-            self.config.base_dir,
-            "cache/test_policy",
-            [
-                self.config.data.rating_loader,
-                self.config.data.test_policy,
-            ],
-        )
         def test_policy_scores():
             dataset = self.rating_loader.load(
                 split="train",
@@ -99,51 +76,15 @@ class MSLR(pl.LightningDataModule):
             self.test_policy.fit(dataset)
             return self.test_policy.predict(dataset)
 
-        @cache(
-            self.config.base_dir,
-            "cache/train_clicks",
-            [
-                self.config.data.rating_loader,
-                self.config.data.train_policy,
-                self.config.data.train_simulator,
-            ],
-        )
         def simulate_train():
             return self.train_simulator(self.dataset, self.train_policy_scores)
 
-        @cache(
-            self.config.base_dir,
-            "cache/val_clicks",
-            [
-                self.config.data.rating_loader,
-                self.config.data.train_policy,
-                self.config.data.val_simulator,
-            ],
-        )
         def simulate_val():
             return self.val_simulator(self.dataset, self.train_policy_scores)
 
-        @cache(
-            self.config.base_dir,
-            "cache/test_clicks",
-            [
-                self.config.data.rating_loader,
-                self.config.data.test_policy,
-                self.config.data.test_simulator,
-            ],
-        )
         def simulate_test():
             return self.test_simulator(self.dataset, self.test_policy_scores)
 
-        @cache(
-            self.config.base_dir,
-            "cache/train_click_stats",
-            [
-                self.config.data.rating_loader,
-                self.config.data.train_policy,
-                self.config.data.train_simulator,
-            ],
-        )
         def get_train_click_stats():
             logger.info("Compute click statistics on MSLR")
             n_documents = self.get_n_documents()
@@ -156,14 +97,15 @@ class MSLR(pl.LightningDataModule):
 
             return ClickDatasetStats(rank_clicks, rank_impressions)
 
-        self.dataset = get_dataset()
-        self.train_policy_scores = train_policy_scores()
+        if self.dataset is None:
+            self.dataset = get_dataset()
 
-        if stage == TrainerFn.FITTING:
+        if stage == TrainerFn.FITTING and self.train_policy_scores is None:
+            self.train_policy_scores = train_policy_scores()
             self.train_clicks = simulate_train()
             self.val_clicks = simulate_val()
             self.train_stats = get_train_click_stats()
-        elif stage == TrainerFn.TESTING:
+        elif stage == TrainerFn.TESTING and self.test_policy_scores is None:
             self.test_policy_scores = test_policy_scores()
             self.test_clicks = simulate_test()
 

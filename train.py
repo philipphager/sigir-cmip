@@ -22,10 +22,6 @@ logger = logging.getLogger(__name__)
 
 @hydra.main(config_path="config", config_name="config", version_base="1.2")
 def main(config: DictConfig):
-    if os.path.exists(config.base_dir + "checkpoints/" + hash_config(config) + ".ckpt"):
-        print("Checkpoint found, skipping training...")
-        return
-
     logger.info(OmegaConf.to_yaml(config))
     logger.info("Working directory : {}".format(os.getcwd()))
     seed_everything(config.random_state)

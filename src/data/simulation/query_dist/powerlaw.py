@@ -2,10 +2,17 @@ import torch
 
 
 class PowerLawQueryDist:
-    def __init__(self, alpha: float, random_state: int):
+    def __init__(
+        self,
+        alpha: float,
+        random_state: int,
+        random_state_increment: int,
+    ):
         self.alpha = alpha
         self.random_state = random_state
-        self.generator = torch.Generator().manual_seed(random_state)
+        self.generator = torch.Generator().manual_seed(
+            random_state + random_state_increment
+        )
 
     def __call__(self, n_queries: int, n_sessions: int) -> torch.LongTensor:
         # Create new generator to fix query distribution across consecutive calls
