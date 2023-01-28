@@ -103,7 +103,7 @@ class ClickModel(LightningModule, ABC):
             # FIXME: Remove null check when Yandex has a logging policy.
             if self.lp_scores is not None:
                 metrics += self._get_policy_metrics(y_predict, y_lp, y, n)
-                policy_df = sample_policy_data(y_predict, y_lp, y, n, n_samples=10_000)
+                policy_df = sample_policy_data(y_predict, y_lp, y, n, n_samples=50_000)
 
                 self.logger.log_table(
                     key="Appendix/policy",
