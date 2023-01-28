@@ -22,10 +22,10 @@ python main.py -m \
   data/query_dist@data.train_simulator.query_dist="$query_dist" \
   data/query_dist@data.val_simulator.query_dist="$query_dist" \
   data/query_dist@data.test_simulator.query_dist="$query_dist" \
-  data/query_dist@data.train_simulator.temperature=1.0 \
-  data/query_dist@data.val_simulator.temperature=1.0 \
   data/logging_policy@data.train_policy=noisy-oracle \
   data/logging_policy@data.test_policy=uniform \
+  data.train_simulator.temperature=1.0 \
+  data.val_simulator.temperature=1.0 \
   model=dctr,pbm \
   random_state=30219,76665,88914,11656,43670 \
   $@
