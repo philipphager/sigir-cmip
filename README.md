@@ -1,6 +1,9 @@
 # An Offline Metric for the Debiasedness of Click Models
 Source code for the paper `An Offline Metric for the Debiasedness of Click Models` currently under review at SIGIR 2023
 
+## Hyperparameters and configuration
+You can find a list of model parameters and training configurations under `config/`.
+
 ## Setup
 
 ### 1. Virtual environment with Conda
