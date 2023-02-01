@@ -1,4 +1,5 @@
-# Evaluating Click Models for Logging-Policy Bias
+# An Offline Metric for the Debiasedness of Click Models
+Source code for the paper `An Offline Metric for the Debiasedness of Click Models` currently under review at SIGIR 2023
 
 ## Setup
 
