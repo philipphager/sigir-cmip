@@ -54,4 +54,4 @@ Log metrics with [Weights & Biases](https://github.com/wandb/wandb).
 ```
 
 ## License
-This project uses the MIT License.
+This project uses the [MIT license](https://github.com/philipphager/sigir-cmip/blob/main/LICENSE).
