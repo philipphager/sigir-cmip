@@ -1,9 +1,6 @@
 # An Offline Metric for the Debiasedness of Click Models
 Source code for the SIGIR 2023 paper `An Offline Metric for the Debiasedness of Click Models`. For a standalone implementation of the proposed CMIP metric, [see this repository](https://github.com/philipphager/CMIP).
 
-## Hyperparameters and configuration
-You can find a list of model parameters and training configurations under `config/`.
-
 ## Setup
 ### 1. Virtual environment with Conda
 
@@ -58,6 +55,9 @@ All code for plotting is in the `notebooks/` directory. The code requires the re
 1. Make sure you activate your environment
 2. Start a jupyterlab server: `python -m jupyterlab`
 3. Add wandb parameters in notebook header and run all cells
+
+## Hyperparameters and configuration
+You can find a list of model parameters and training configurations under `config/`.
 
 ## Reference
 ```
