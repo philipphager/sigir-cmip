@@ -40,10 +40,10 @@ model_checkpoint:
 
 wandb_logger:
   _target_: pytorch_lightning.loggers.WandbLogger
-  project: ??? # Replace
-  entity: ??? # Replace
+  project: ??? # Replace with your wandb project name
+  entity: ??? # Replace with your wandb entity name
   save_dir: ${base_dir}wandb
-  id: ???
+  id: ??? # Custom id set by scripts
 
 random_state: 0
 base_dir: ???
