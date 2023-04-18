@@ -1,4 +1,0 @@
-_target_: src.data.loader.YandexClickLoader
-name: yandex-clicks
-fold: 1
-base_dir: "${base_dir}"
