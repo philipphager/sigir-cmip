@@ -1,7 +1,7 @@
 #!/bin/bash
 
 datetime=`date +'%s'`
-experiment_name="cm-bias"
+experiment_name="sigir-cmip"
 run_name="visual-example"
 user_model="graded-pbm"
 query_dist="uniform"
