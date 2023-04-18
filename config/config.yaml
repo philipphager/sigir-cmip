@@ -23,7 +23,6 @@ test_trainer:
   callbacks:
     - _target_: pytorch_lightning.callbacks.RichProgressBar
 
-
 early_stopping:
   _target_: pytorch_lightning.callbacks.EarlyStopping
   monitor: Metrics/val/loss/dataloader_idx_0
@@ -41,8 +40,8 @@ model_checkpoint:
 
 wandb_logger:
   _target_: pytorch_lightning.loggers.WandbLogger
-  project: "cm-bias-evaluation"
-  entity: "cm-offline-metrics"
+  project: ??? # Replace
+  entity: ??? # Replace
   save_dir: ${base_dir}wandb
   id: ???
 

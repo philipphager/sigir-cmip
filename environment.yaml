@@ -16,6 +16,9 @@ dependencies:
   - pip=21.2.4
   - rich=12.5.1
   - lightgbm=3.3.3
+  - altair=4.2.2
+  - altair_saver=0.1.0
+  - jupyterlab=3.5.3
   - pip:
       - hydra_submitit_launcher==1.2.0
       - pytorch-lightning==1.8.3
