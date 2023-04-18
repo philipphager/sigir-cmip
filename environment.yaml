@@ -1,5 +1,6 @@
-name: cm-bias-evaluation
+name: sigir-cmip
 channels:
+  - pytorch
   - conda-forge
   - defaults
 dependencies:
@@ -17,7 +18,7 @@ dependencies:
   - lightgbm=3.3.3
   - pip:
       - hydra_submitit_launcher==1.2.0
-      - lightning==1.8.3
+      - pytorch-lightning==1.8.3
       - pre-commit==2.20.0
       - wget==3.2
       - wandb==0.13.2
