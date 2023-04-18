@@ -1,10 +1,18 @@
 #!/bin/bash
 
 datetime=`date +'%s'`
-experiment_name="sweep"
-run_name="graded-pbm"
-user_model="graded-pbm"
+experiment_name="cmip-sigir"
+run_name="carousel"
+user_model="graded-carousel"
 query_dist="uniform"
+
+# Train all seven click models on user behavior following a carousel layout of multiple
+# rows of items.
+# Each model is trained on three logging policies:
+# Uniform shuffling, a feature-based lambda-mart ranker, or a near-optimal oracle policy
+# And evaluated on a different policy: uniform shuffling or noisy-oracle to simulate
+# a covariate shift in the ranking distribution.
+# All simulations are repeated over 10 random seeds.
 
 echo "datetime:" "$datetime"
 echo "experiment_name: $experiment_name"
@@ -22,12 +30,12 @@ python main.py -m \
   data/query_dist@data.train_simulator.query_dist="$query_dist" \
   data/query_dist@data.val_simulator.query_dist="$query_dist" \
   data/query_dist@data.test_simulator.query_dist="$query_dist" \
-  data/logging_policy@data.train_policy=noisy-oracle \
-  data/logging_policy@data.test_policy=uniform,noisy-oracle \
+  data/logging_policy@data.train_policy=lambda-mart,noisy-oracle \
+  data/logging_policy@data.test_policy=uniform,lambda-mart,noisy-oracle \
   data.val_simulator.user_model.random_state_increment=1 \
   data.test_simulator.user_model.random_state_increment=2 \
   data.val_simulator.query_dist.random_state_increment=1 \
   data.test_simulator.query_dist.random_state_increment=2 \
   model=dctr,ranked-dctr,pbm,ubm,dbn,cacm-minus,ncm \
-  random_state=30219,76665,88914,11656,43670 \
+  random_state=2023,3901,2837,47969,3791,3807,8963,11289,75656,31277 \
   $@

@@ -14,7 +14,18 @@ Dependency management
 2. Create environment and install dependencies: `conda env create -f environment.yaml`
 3. Activating environment: `conda activate sigir-cmip`
 
-### 2. Pre-commit
+### 2. Experiments
+
+All experimental runs are documented inside the `scripts/` directory. To execute an experiment: 
+
+1. Make the scripts executable: `chmod +x ./scripts/*`
+2. Run a script locally use, e.g.: `./scripts/graded-pbm.sh`
+3. To execute a script on a [SLURM cluster](https://slurm.schedmd.com/documentation.html) add: `./scripts/graded-pbm.sh +launcher=slurm`
+4. You can configure the SLURM resources in: `config/launcher/slurm.yaml`
+
+Documentation of each experiment can be found inside the scripts.
+
+### 3. Pre-commit
 
 Automatically format and lint modified files in commit.
 
@@ -23,22 +34,19 @@ Automatically format and lint modified files in commit.
 3. (Optional) Run on checks against all files (not just
    changed): `pre-commit run --all-files`
 
-### 3. Datasets
-The project automatically downloads the datasets used in this work.
+### 4. Datasets
 
-You need to specify the location for storing datasets:
+The project automatically downloads the dataset used in this work to: `~/.ltr_datasets`.
 
-1. Open the file `config/env.yaml` to edit configurations for your local machine (i.e.,
-   edits are not tracked on git)
-2. The specified the location for storing datasets, e.g.: `base_dir: "~/.ltr_datasets/"`
-3. Ask git to ignore all changes made to the file to avoid committing your local
-   configs: `git update-index --skip-worktree config/env.yaml`
-4. To avoid downloading datasets, you can directly place the original .zip file into
+1. You can change the directory by modifying the `base_dir` variable in: `config/env.yaml`
+2. To avoid downloading datasets, you can directly place the original .zip file into
    the `download` subdirectory, e.g.:
    `~/.ltr_datasets/download/MSLR-WEB30K.zip`
 
-### 4. Logging
+### 5. Logging
+
 Log metrics with [Weights & Biases](https://github.com/wandb/wandb).
+
 1. Make sure you activate your environment
 2. Log into Weights & Biases before your first run: `wandb login`
 
