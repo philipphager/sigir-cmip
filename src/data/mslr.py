@@ -9,7 +9,6 @@ from src.data.dataset import ClickDatasetStats, RatingDataset
 from src.data.loader.base import Loader
 from src.data.simulation import Simulator
 from src.data.simulation.logging_policy import LoggingPolicy
-from src.util.cache import cache
 from src.util.hydra import ConfigWrapper
 from src.util.tensor import scatter_rank_add
 

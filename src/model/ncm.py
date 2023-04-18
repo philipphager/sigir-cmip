@@ -69,7 +69,7 @@ class NCM(NeuralClickModel):
                                 n_batch,
                                 1,
                                 self.doc_embedd_dim + self.click_embedd_dim,
-                                device=self.device
+                                device=self.device,
                             ),
                         ],
                         dim=2,
