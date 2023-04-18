@@ -51,7 +51,7 @@ Log metrics with [Weights & Biases](https://github.com/wandb/wandb).
 2. Log into Weights & Biases before your first run: `wandb login`
 3. Add your wandb entity and project name inside `config/config.yaml`
 
-### 5. Visualizations
+### 6. Visualizations
 
 All code for plotting is in the `notebooks/` directory. The code requires the results to be logged to Weights & Biases (Section 4).
 
