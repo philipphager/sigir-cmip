@@ -10,7 +10,6 @@ train_val_trainer:
   accelerator: auto
   log_every_n_steps: 100
   devices: 1
-  #strategy: single_device # For DDP, pass 'train_val_trainer.strategy=ddp_find_unused_parameters_false' in cmd
   callbacks: ???
   logger: ???
 
