@@ -53,7 +53,7 @@ Log metrics with [Weights & Biases](https://github.com/wandb/wandb).
 
 ### 6. Visualizations
 
-All code for plotting is in the `notebooks/` directory. The code requires the results to be logged to Weights & Biases (Section 4).
+All code for plotting is in the `notebooks/` directory. The code requires the results to be logged to Weights & Biases (Section 5).
 
 1. Make sure you activate your environment
 2. Start a jupyterlab server: `python -m jupyterlab`
