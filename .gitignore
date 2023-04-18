@@ -25,3 +25,5 @@ cache.sh
 tmp*
 config/broom
 *.lprof
+/notebooks/artifacts/
+/notebooks/figures/
